@@ -1,0 +1,29 @@
+{
+  "cpuWarnPct": 85,
+  "memWarnPct": 90,
+  "diskWarnPct": 90,
+  "tempWarnC": 80,
+  "rxErrorWarn": 1,
+  "txErrorWarn": 1,
+  "rxDropWarn": 10,
+  "txDropWarn": 10,
+  "throughputSpikeMBps": 25,
+  "packetSpikePps": 15000,
+  "ignorePorts": [
+    53,
+    323,
+    5353,
+    18789,
+    3000,
+    4123,
+    5432,
+    5682,
+    8080
+  ],
+  "ignoreProcesses": [
+    "openclaw-gatewa",
+    "node",
+    "docker",
+    "postgres"
+  ]
+}

@@ -9,8 +9,11 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Larry Device Dashboard</h1>
-      <div id="meta">Loading…</div>
+      <div>
+        <h1>Larry Device Dashboard</h1>
+        <div id="meta">Loading…</div>
+      </div>
+      <div class="pillbar" id="alertSummary"></div>
     </header>
 
     <section class="grid top">
@@ -21,13 +24,29 @@
     </section>
 
     <section class="grid">
-      <div class="card span-2"><h2>Interfaces</h2><div id="interfaces"></div></div>
+      <div class="card span-2"><h2>Historical Trends</h2><div id="charts"></div></div>
+      <div class="card"><h2>Alerts</h2><div id="alerts"></div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card"><h2>Public Network</h2><div id="publicNet"></div></div>
+      <div class="card"><h2>OpenClaw Status</h2><pre id="openclaw"></pre></div>
       <div class="card"><h2>Thermals</h2><div id="thermal"></div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-2"><h2>Interfaces</h2><div id="interfaces"></div></div>
+      <div class="card"><h2>Alert Rules</h2><div id="rules"></div></div>
     </section>
 
     <section class="grid">
       <div class="card span-2"><h2>Filesystems</h2><div id="disk"></div></div>
       <div class="card"><h2>Disk I/O</h2><div id="io"></div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-2"><h2>Processes</h2><div id="processes"></div></div>
+      <div class="card"><h2>Docker / Containers</h2><div id="docker"></div></div>
     </section>
 
     <section class="grid">
