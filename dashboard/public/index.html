@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Larry Device Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Larry Device Dashboard</h1>
+      <div id="meta">Loading…</div>
+    </header>
+
+    <section class="grid top">
+      <div class="card"><h2>CPU</h2><div id="cpu"></div></div>
+      <div class="card"><h2>Memory</h2><div id="memory"></div></div>
+      <div class="card"><h2>Packet Health</h2><div id="packets"></div></div>
+      <div class="card"><h2>Routing</h2><div id="routing"></div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-2"><h2>Interfaces</h2><div id="interfaces"></div></div>
+      <div class="card"><h2>Thermals</h2><div id="thermal"></div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-2"><h2>Filesystems</h2><div id="disk"></div></div>
+      <div class="card"><h2>Disk I/O</h2><div id="io"></div></div>
+    </section>
+
+    <section class="grid">
+      <div class="card span-3"><h2>Listening Services</h2><pre id="services"></pre></div>
+    </section>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

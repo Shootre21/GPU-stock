@@ -1,0 +1,51 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --card: #121932;
+  --muted: #8fa2c9;
+  --text: #e9eefc;
+  --good: #36d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --accent: #60a5fa;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: linear-gradient(180deg, #0b1020, #0f1730 45%, #0b1020);
+  color: var(--text);
+}
+.wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+header { display:flex; justify-content:space-between; align-items:end; gap:16px; margin-bottom:20px; }
+h1 { margin:0; font-size: 2rem; }
+#meta { color: var(--muted); }
+.grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:16px; }
+.top { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: rgba(18,25,50,.95);
+  border: 1px solid rgba(143,162,201,.15);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.2);
+}
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+h2 { margin: 0 0 12px; font-size: 1rem; color: #cfe0ff; }
+.kv { display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.kv:last-child { border-bottom:none; }
+.muted { color: var(--muted); }
+.good { color: var(--good); }
+.warn { color: var(--warn); }
+.bad { color: var(--bad); }
+.meter { height: 10px; background:#0a0f1f; border-radius:999px; overflow:hidden; margin:8px 0 12px; }
+.meter > span { display:block; height:100%; background: linear-gradient(90deg, var(--accent), #22d3ee); }
+table { width:100%; border-collapse: collapse; font-size:.92rem; }
+th, td { text-align:left; padding:8px; border-bottom:1px solid rgba(255,255,255,.08); vertical-align: top; }
+pre { white-space: pre-wrap; word-break: break-word; color: #cfe0ff; margin: 0; }
+.small { font-size: .88rem; }
+@media (max-width: 1000px) {
+  .grid, .top { grid-template-columns: 1fr; }
+  .span-2, .span-3 { grid-column: span 1; }
+  header { flex-direction: column; align-items: start; }
+}

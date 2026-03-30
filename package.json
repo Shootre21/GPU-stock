@@ -1,0 +1,9 @@
+{
+  "name": "larry-device-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local device observability dashboard for host stats and network details",
+  "scripts": {
+    "start": "node dashboard/server.js"
+  }
+}
