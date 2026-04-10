@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Larry Browser Bridge</title>
+  <style>
+    body { font-family: Arial, sans-serif; width: 340px; margin: 0; padding: 14px; background: #0f172a; color: #e2e8f0; }
+    h1 { font-size: 16px; margin: 0 0 10px; }
+    .muted { color: #94a3b8; font-size: 12px; }
+    textarea { width: 100%; min-height: 110px; margin-top: 10px; border-radius: 8px; border: 1px solid #334155; background: #020617; color: #e2e8f0; padding: 10px; }
+    button { margin-top: 10px; width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #38bdf8; color: #082f49; font-weight: 700; cursor: pointer; }
+    .card { border: 1px solid #334155; border-radius: 10px; padding: 10px; margin-top: 10px; }
+    pre { white-space: pre-wrap; word-break: break-word; font-size: 11px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <h1>Larry Browser Bridge</h1>
+  <div id="context" class="muted">Loading scoped site context…</div>
+  <textarea id="draft" placeholder="Draft a post or message to queue for approval."></textarea>
+  <button id="queueBtn">Queue draft for approval</button>
+  <div class="card">
+    <div class="muted">Result</div>
+    <pre id="result">No action yet.</pre>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
