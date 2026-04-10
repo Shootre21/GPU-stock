@@ -1,11 +1,12 @@
 :root { color-scheme: dark; --bg:#0b1020; --card:#121932; --muted:#8fa2c9; --text:#e9eefc; --accent:#60a5fa; --good:#36d399; --warn:#fbbf24; --bad:#f87171; }
 * { box-sizing:border-box; }
 body { margin:0; font-family:Inter,system-ui,sans-serif; background:linear-gradient(180deg,#08101d,#0d1630 45%,#09101d); color:var(--text); }
-.wrap { max-width:1100px; margin:0 auto; padding:24px; }
+.wrap { max-width:1200px; margin:0 auto; padding:24px; }
 header { margin-bottom:18px; }
 h1 { margin:0 0 6px; }
 .muted { color:var(--muted); }
 .grid { display:grid; grid-template-columns:1.2fr .8fr; gap:16px; margin-bottom:16px; }
+.lower { grid-template-columns:1fr 1fr; }
 .card { background:rgba(18,25,50,.96); border:1px solid rgba(143,162,201,.15); border-radius:18px; padding:16px; box-shadow:0 10px 35px rgba(0,0,0,.23); margin-bottom:16px; }
 label { display:block; margin-bottom:10px; font-size:.95rem; }
 input, textarea, select { width:100%; margin-top:6px; border-radius:10px; background:#0a0f1f; color:var(--text); border:1px solid rgba(255,255,255,.08); padding:10px; }
@@ -14,7 +15,7 @@ button { background:linear-gradient(90deg,var(--accent),#22d3ee); color:white; b
 .checks { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; }
 .checks label { display:flex; align-items:center; gap:8px; }
 .checks input { width:auto; margin:0; }
-.site { border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px; margin-bottom:10px; }
+.site, .request { border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px; margin-bottom:10px; }
 .row { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .badge { border-radius:999px; padding:4px 8px; font-size:.82rem; background:#17213f; }
 .badge.good { color:var(--good); }
@@ -25,4 +26,6 @@ button { background:linear-gradient(90deg,var(--accent),#22d3ee); color:white; b
 .audit-entry:last-child { border-bottom:none; }
 .inline-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
 .secondary { background:#1a2443; }
-@media (max-width: 900px) { .grid { grid-template-columns:1fr; } }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.list { margin:8px 0 0 18px; }
+@media (max-width: 900px) { .grid, .lower { grid-template-columns:1fr; } }

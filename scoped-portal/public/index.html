@@ -10,8 +10,8 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Scoped Access Portal v1</h1>
-        <p class="muted">Approve websites one by one. Manual login only. Audit everything. Revoke anytime.</p>
+        <h1>Scoped Access Portal v2</h1>
+        <p class="muted">Per-site approvals, manual login handoff, action scoping, and auditability.</p>
       </div>
     </header>
 
@@ -21,13 +21,14 @@
         <form id="siteForm">
           <label>Label<input name="label" placeholder="X/Twitter posting" required /></label>
           <label>Origin<input name="origin" placeholder="https://x.com" required /></label>
-          <label>Notes<textarea name="notes" placeholder="What this site is for, who approves posting, etc."></textarea></label>
+          <label>Notes<textarea name="notes" placeholder="What this site is for, approval rules, account scope, etc."></textarea></label>
           <div class="checks">
             <label><input type="checkbox" name="read" checked /> Read</label>
             <label><input type="checkbox" name="draft" checked /> Draft</label>
             <label><input type="checkbox" name="postWithApproval" checked /> Post with approval</label>
             <label><input type="checkbox" name="changeSettingsWithApproval" /> Change settings with approval</label>
           </div>
+          <label>Allowed actions (comma-separated)<input name="allowedActions" value="read_page,draft_post,draft_message" /></label>
           <button type="submit">Add site</button>
         </form>
       </div>
@@ -36,7 +37,8 @@
         <ul>
           <li>No universal credential capture</li>
           <li>You log in manually per site</li>
-          <li>Each site has separate status and permissions</li>
+          <li>Actions can be requested and approved per site</li>
+          <li>Each site has explicit allowed actions</li>
           <li>Everything important is auditable</li>
           <li>Revocation is one click</li>
         </ul>
@@ -48,9 +50,15 @@
       <div id="sites"></div>
     </section>
 
-    <section class="card">
-      <h2>Audit log</h2>
-      <div id="audit"></div>
+    <section class="grid lower">
+      <div class="card">
+        <h2>Approval queue</h2>
+        <div id="requests"></div>
+      </div>
+      <div class="card">
+        <h2>Audit log</h2>
+        <div id="audit"></div>
+      </div>
     </section>
   </div>
   <script src="/app.js"></script>
