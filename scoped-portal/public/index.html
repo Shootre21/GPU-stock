@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scoped Access Portal</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Scoped Access Portal v1</h1>
+        <p class="muted">Approve websites one by one. Manual login only. Audit everything. Revoke anytime.</p>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Add website</h2>
+        <form id="siteForm">
+          <label>Label<input name="label" placeholder="X/Twitter posting" required /></label>
+          <label>Origin<input name="origin" placeholder="https://x.com" required /></label>
+          <label>Notes<textarea name="notes" placeholder="What this site is for, who approves posting, etc."></textarea></label>
+          <div class="checks">
+            <label><input type="checkbox" name="read" checked /> Read</label>
+            <label><input type="checkbox" name="draft" checked /> Draft</label>
+            <label><input type="checkbox" name="postWithApproval" checked /> Post with approval</label>
+            <label><input type="checkbox" name="changeSettingsWithApproval" /> Change settings with approval</label>
+          </div>
+          <button type="submit">Add site</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Safety model</h2>
+        <ul>
+          <li>No universal credential capture</li>
+          <li>You log in manually per site</li>
+          <li>Each site has separate status and permissions</li>
+          <li>Everything important is auditable</li>
+          <li>Revocation is one click</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Approved sites</h2>
+      <div id="sites"></div>
+    </section>
+
+    <section class="card">
+      <h2>Audit log</h2>
+      <div id="audit"></div>
+    </section>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
