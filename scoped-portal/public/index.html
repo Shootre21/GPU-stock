@@ -10,8 +10,8 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Scoped Access Portal v2</h1>
-        <p class="muted">Per-site approvals, manual login handoff, action scoping, and auditability.</p>
+        <h1>Scoped Access Portal v3</h1>
+        <p class="muted">Control layer + execution bridge scaffold for future browser-backed site actions.</p>
       </div>
     </header>
 
@@ -37,9 +37,9 @@
         <ul>
           <li>No universal credential capture</li>
           <li>You log in manually per site</li>
-          <li>Actions can be requested and approved per site</li>
-          <li>Each site has explicit allowed actions</li>
-          <li>Everything important is auditable</li>
+          <li>Actions can be requested, approved, and queued</li>
+          <li>Execution layer is scaffolded, not fully automated yet</li>
+          <li>Each site tracks session state and freshness</li>
           <li>Revocation is one click</li>
         </ul>
       </div>
@@ -56,9 +56,14 @@
         <div id="requests"></div>
       </div>
       <div class="card">
-        <h2>Audit log</h2>
-        <div id="audit"></div>
+        <h2>Execution queue</h2>
+        <div id="executions"></div>
       </div>
+    </section>
+
+    <section class="card">
+      <h2>Audit log</h2>
+      <div id="audit"></div>
     </section>
   </div>
   <script src="/app.js"></script>
