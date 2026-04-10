@@ -2,15 +2,13 @@
 # Note: GPUtil may fail on some Python 3.12 environments due to distutils removal; GPU metrics degrade to N/A.
 
 import asyncio
-import json
-import math
 import os
 import platform
 import socket
 import time
 from collections import deque
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import psutil
 from fastapi import FastAPI
@@ -58,16 +56,6 @@ def bytes_to_human(value: Optional[float]) -> str:
         size /= 1024.0
     return f"{size:.1f} PB"
 
-
-def percent_class(value: Optional[float], warn: float = 70, critical: float = 85) -> str:
-    """Return frontend class name for threshold coloring."""
-    if value is None:
-        return "na"
-    if value >= critical:
-        return "critical"
-    if value >= warn:
-        return "warning"
-    return "normal"
 
 
 def add_alert(metric: str, value: str, severity: str, details: str = "") -> None:
