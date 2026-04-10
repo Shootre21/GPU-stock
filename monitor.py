@@ -5,8 +5,10 @@ import asyncio
 import os
 import platform
 import socket
+import subprocess
 import time
 from collections import deque
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -27,7 +29,32 @@ ALERT_LIMIT = 50
 NETWORK_SPIKE_THRESHOLD_MBPS = 10
 NETWORK_SPIKE_THRESHOLD_BPS = NETWORK_SPIKE_THRESHOLD_MBPS * 1024 * 1024
 
-app = FastAPI(title="System Monitor Dashboard")
+collector_task = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Start and stop the background collector with the app lifecycle."""
+    global prev_net_counters, prev_disk_counters, prev_sample_time, last_metrics, collector_task
+    prev_net_counters = psutil.net_io_counters(pernic=True)
+    prev_disk_counters = psutil.disk_io_counters()
+    prev_sample_time = time.time()
+    psutil.cpu_percent(interval=None)
+    psutil.cpu_percent(interval=None, percpu=True)
+    last_metrics = collect_metrics()
+    collector_task = asyncio.create_task(background_collector())
+    try:
+        yield
+    finally:
+        if collector_task:
+            collector_task.cancel()
+            try:
+                await collector_task
+            except asyncio.CancelledError:
+                pass
+
+
+app = FastAPI(title="System Monitor Dashboard", lifespan=lifespan)
 
 # Rolling histories kept server-side for the frontend.
 cpu_history = deque(maxlen=HISTORY_POINTS)
@@ -104,53 +131,144 @@ def get_cpu_temperatures() -> Optional[float]:
     return None
 
 
-def get_gpu_info() -> Dict[str, Any]:
-    """Collect GPU metrics if GPUtil is available and a GPU exists."""
-    if GPUtil is None:
-        return {
-            "available": False,
-            "name": "N/A",
-            "usage_percent": None,
-            "memory_used_mb": None,
-            "memory_total_mb": None,
-            "temperature": None,
-            "reason": "GPUtil not installed",
-        }
+def detect_gpu_device() -> Dict[str, Any]:
+    """Best-effort GPU presence detection using sysfs and lspci."""
+    cards = []
+    drm_root = "/sys/class/drm"
+    if os.path.isdir(drm_root):
+        for entry in sorted(os.listdir(drm_root)):
+            if not entry.startswith("card") or "-" in entry:
+                continue
+            device_dir = os.path.join(drm_root, entry, "device")
+            if not os.path.isdir(device_dir):
+                continue
+            vendor = None
+            device = None
+            modalias = None
+            uevent_path = os.path.join(device_dir, "uevent")
+            if os.path.exists(uevent_path):
+                try:
+                    with open(uevent_path, "r", encoding="utf-8", errors="ignore") as f:
+                        for line in f:
+                            if line.startswith("MODALIAS="):
+                                modalias = line.strip().split("=", 1)[1]
+                                break
+                except Exception:
+                    pass
+            for field in ("vendor", "device"):
+                path = os.path.join(device_dir, field)
+                if os.path.exists(path):
+                    try:
+                        value = open(path, "r", encoding="utf-8", errors="ignore").read().strip()
+                        if field == "vendor":
+                            vendor = value
+                        else:
+                            device = value
+                    except Exception:
+                        pass
+            cards.append({
+                "card": entry,
+                "vendor": vendor,
+                "device": device,
+                "modalias": modalias,
+            })
 
+    lspci_lines = []
     try:
-        gpus = GPUtil.getGPUs()
-        if not gpus:
+        result = subprocess.run(
+            ["bash", "-lc", "command -v lspci >/dev/null && lspci | grep -i -E 'vga|3d|display' || true"],
+            capture_output=True,
+            text=True,
+            timeout=3,
+        )
+        lspci_lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    except Exception:
+        pass
+
+    non_virtual_cards = [c for c in cards if (c.get("modalias") or "") != "platform:vgem"]
+    if non_virtual_cards:
+        card = non_virtual_cards[0]
+        return {
+            "detected": True,
+            "name": card.get("card", "GPU"),
+            "reason": "Detected via /sys/class/drm",
+            "source": "sysfs",
+            "details": {"cards": cards, "lspci": lspci_lines},
+        }
+    if lspci_lines:
+        return {
+            "detected": True,
+            "name": lspci_lines[0],
+            "reason": "Detected via lspci",
+            "source": "lspci",
+            "details": {"cards": cards, "lspci": lspci_lines},
+        }
+    if cards:
+        return {
+            "detected": False,
+            "name": cards[0].get("card", "N/A"),
+            "reason": "Only virtual DRM device detected",
+            "source": "sysfs",
+            "details": {"cards": cards, "lspci": lspci_lines},
+        }
+    return {
+        "detected": False,
+        "name": "N/A",
+        "reason": "No GPU device detected",
+        "source": "none",
+        "details": {"cards": cards, "lspci": lspci_lines},
+    }
+
+
+def get_gpu_info() -> Dict[str, Any]:
+    """Collect GPU metrics if possible, or at least expose detected GPU presence."""
+    detected = detect_gpu_device()
+
+    if GPUtil is not None:
+        try:
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                gpu = gpus[0]
+                return {
+                    "available": True,
+                    "detected": True,
+                    "name": getattr(gpu, "name", detected.get("name") or "GPU 0"),
+                    "usage_percent": round(float(getattr(gpu, "load", 0.0)) * 100, 1),
+                    "memory_used_mb": round(float(getattr(gpu, "memoryUsed", 0.0)), 1),
+                    "memory_total_mb": round(float(getattr(gpu, "memoryTotal", 0.0)), 1),
+                    "temperature": round(float(getattr(gpu, "temperature", 0.0)), 1)
+                    if getattr(gpu, "temperature", None) is not None
+                    else None,
+                    "reason": "Live GPU metrics available",
+                    "source": "GPUtil",
+                    "details": detected.get("details", {}),
+                }
+        except Exception as exc:
             return {
                 "available": False,
-                "name": "N/A",
+                "detected": detected.get("detected", False),
+                "name": detected.get("name", "N/A"),
                 "usage_percent": None,
                 "memory_used_mb": None,
                 "memory_total_mb": None,
                 "temperature": None,
-                "reason": "No GPU detected",
+                "reason": f"GPU detected but live metrics unavailable: {exc}",
+                "source": detected.get("source", "unknown"),
+                "details": detected.get("details", {}),
             }
-        gpu = gpus[0]
-        return {
-            "available": True,
-            "name": getattr(gpu, "name", "GPU 0"),
-            "usage_percent": round(float(getattr(gpu, "load", 0.0)) * 100, 1),
-            "memory_used_mb": round(float(getattr(gpu, "memoryUsed", 0.0)), 1),
-            "memory_total_mb": round(float(getattr(gpu, "memoryTotal", 0.0)), 1),
-            "temperature": round(float(getattr(gpu, "temperature", 0.0)), 1)
-            if getattr(gpu, "temperature", None) is not None
-            else None,
-            "reason": "",
-        }
-    except Exception as exc:
-        return {
-            "available": False,
-            "name": "N/A",
-            "usage_percent": None,
-            "memory_used_mb": None,
-            "memory_total_mb": None,
-            "temperature": None,
-            "reason": f"GPU read failed: {exc}",
-        }
+
+    return {
+        "available": False,
+        "detected": detected.get("detected", False),
+        "name": detected.get("name", "N/A"),
+        "usage_percent": None,
+        "memory_used_mb": None,
+        "memory_total_mb": None,
+        "temperature": None,
+        "reason": detected.get("reason", "No GPU metrics available"),
+        "source": detected.get("source", "unknown"),
+        "details": detected.get("details", {}),
+    }
 
 
 def collect_disk_info(elapsed: float) -> Dict[str, Any]:
@@ -389,19 +507,6 @@ def collect_metrics() -> Dict[str, Any]:
     return snapshot
 
 
-@app.on_event("startup")
-async def startup_event() -> None:
-    """Prime counters and start background metric collection."""
-    global prev_net_counters, prev_disk_counters, prev_sample_time, last_metrics
-    prev_net_counters = psutil.net_io_counters(pernic=True)
-    prev_disk_counters = psutil.disk_io_counters()
-    prev_sample_time = time.time()
-    psutil.cpu_percent(interval=None)
-    psutil.cpu_percent(interval=None, percpu=True)
-    last_metrics = collect_metrics()
-    asyncio.create_task(background_collector())
-
-
 async def background_collector() -> None:
     """Refresh cached metrics continuously for the API and UI."""
     global last_metrics
@@ -508,7 +613,13 @@ def index() -> HTMLResponse:
     }
     .grid-row3 {
       display: grid;
-      grid-template-columns: 1.2fr 2fr 1.2fr;
+      grid-template-columns: 1.1fr 1.6fr 1.1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .grid-row4 {
+      display: grid;
+      grid-template-columns: 1fr;
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -723,6 +834,28 @@ def index() -> HTMLResponse:
       </div>
     </div>
 
+    <div class="grid-row4">
+      <div class="panel">
+        <h3>Network Interfaces</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Interface</th>
+                <th>Sent</th>
+                <th>Received</th>
+                <th>Upload/s</th>
+                <th>Download/s</th>
+                <th>Packets</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody id="network-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="panel">
       <h3>Alerts</h3>
       <div class="alerts" id="alerts"></div>
@@ -885,6 +1018,25 @@ def index() -> HTMLResponse:
       `).join('');
     }
 
+    function renderNetworkTable(interfaces) {
+      const root = document.getElementById('network-table');
+      if (!interfaces || !interfaces.length) {
+        root.innerHTML = '<tr><td colspan="7">No network interface data available.</td></tr>';
+        return;
+      }
+      root.innerHTML = interfaces.map(iface => `
+        <tr>
+          <td>${iface.name || 'N/A'}</td>
+          <td>${bytesToHuman(iface.bytes_sent)}</td>
+          <td>${bytesToHuman(iface.bytes_recv)}</td>
+          <td>${bytesToHuman(iface.upload_bps)}/s</td>
+          <td>${bytesToHuman(iface.download_bps)}/s</td>
+          <td>${(iface.packets_sent ?? 0).toLocaleString()} / ${(iface.packets_recv ?? 0).toLocaleString()}</td>
+          <td>${(iface.errin ?? 0) + (iface.errout ?? 0)}</td>
+        </tr>
+      `).join('');
+    }
+
     function updateCpuChart(history, perCoreHistory, showPerCore) {
       if (showPerCore && perCoreHistory && perCoreHistory.length) {
         const coreCount = perCoreHistory[perCoreHistory.length - 1].length;
@@ -948,12 +1100,14 @@ def index() -> HTMLResponse:
 
         const gpu = data.gpu || {};
         document.getElementById('gpu-panel').innerHTML = [
-          kv('Name', gpu.available ? gpu.name : 'N/A'),
+          kv('Name', gpu.name || 'N/A'),
+          kv('Detected', gpu.detected ? 'Yes' : 'No', gpu.detected ? 'normal' : 'na'),
           kv('Usage', formatPercent(gpu.usage_percent), classForValue(gpu.usage_percent)),
           kv('VRAM Used', gpu.memory_used_mb !== null && gpu.memory_used_mb !== undefined ? `${gpu.memory_used_mb.toFixed(1)} MB` : 'N/A'),
           kv('VRAM Total', gpu.memory_total_mb !== null && gpu.memory_total_mb !== undefined ? `${gpu.memory_total_mb.toFixed(1)} MB` : 'N/A'),
           kv('Temperature', gpu.temperature !== null && gpu.temperature !== undefined ? `${gpu.temperature.toFixed(1)} °C` : 'N/A', classForValue(gpu.temperature, 70, 85)),
-          kv('Status', gpu.available ? 'Detected' : (gpu.reason || 'Unavailable'), gpu.available ? 'normal' : 'na')
+          kv('Source', gpu.source || 'N/A'),
+          kv('Status', gpu.reason || 'Unavailable', gpu.available || gpu.detected ? 'warning' : 'na')
         ].join('');
 
         document.getElementById('os-panel').innerHTML = [
@@ -966,6 +1120,7 @@ def index() -> HTMLResponse:
         ].join('');
 
         renderDiskTable(data.disk.partitions || []);
+        renderNetworkTable(data.network.interfaces || []);
         renderAlerts(data.alerts || []);
 
         ramChart.data.datasets[0].data = data.history.ram || [];
