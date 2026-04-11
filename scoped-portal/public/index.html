@@ -69,8 +69,16 @@
     <section class="card">
       <h2>Execution monitor</h2>
       <div id="statusSummary" class="grid lower"></div>
-      <div id="progressList"></div>
-      <div id="activityLog"></div>
+      <div class="monitor-layout">
+        <div class="monitor-pane">
+          <h3>Posting progress</h3>
+          <div id="progressList"></div>
+        </div>
+        <div class="monitor-pane">
+          <h3>Live logs</h3>
+          <div id="activityLog"></div>
+        </div>
+      </div>
     </section>
 
     <section class="grid lower">
