@@ -30,4 +30,11 @@ button { background:linear-gradient(90deg,var(--accent),#22d3ee); color:white; b
 .list { margin:8px 0 0 18px; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
 .tight { margin-top: 6px; }
+.metric { background:#0d1630; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:12px; }
+.metric .value { font-size:1.3rem; font-weight:700; margin-top:4px; }
+.progress-wrap { margin:10px 0 14px; }
+.progress-label { display:flex; justify-content:space-between; gap:10px; margin-bottom:6px; font-size:.9rem; }
+.progress-bar { width:100%; height:12px; background:#0a0f1f; border-radius:999px; overflow:hidden; border:1px solid rgba(255,255,255,.06); }
+.progress-fill { height:100%; background:linear-gradient(90deg,#60a5fa,#22d3ee); }
+.log-box { border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px; margin-top:10px; background:#0d1428; }
 @media (max-width: 900px) { .grid, .lower { grid-template-columns:1fr; } }

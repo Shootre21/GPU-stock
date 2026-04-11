@@ -2,8 +2,46 @@ function esc(s){return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;
 function badgeFor(status){ if(['authorized','approved','executed','fresh','reported'].includes(status)) return 'good'; if(['revoked','denied','failed','stale'].includes(status)) return 'bad'; return 'warn'; }
 async function api(path, opts={}){ const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opts}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 async function safeApi(path){ try { return await api(path); } catch (e) { return { error: String(e) }; } }
+function progressForExecution(x){
+  if (x.state === 'queued') return { percent: 25, label: 'Queued in portal' };
+  if (x.state === 'executed') return { percent: 80, label: 'Staged in browser / executed bridge step' };
+  if (x.state === 'failed') return { percent: 100, label: 'Failed' };
+  if (x.state === 'reported') return { percent: 100, label: 'Reported complete' };
+  return { percent: 10, label: x.state || 'Pending' };
+}
 async function load(){
   const [sites, audit, requests, executions, bridgeQueue, bridgeContext] = await Promise.all([api('/api/sites'), api('/api/audit'), api('/api/requests'), api('/api/executions'), safeApi('/api/bridge/queue'), safeApi('/api/bridge/page-context')]);
+  const executionItems = Array.isArray(executions) ? executions : [];
+  const queuedCount = executionItems.filter(x => x.state === 'queued').length;
+  const executedCount = executionItems.filter(x => x.state === 'executed').length;
+  const failedCount = executionItems.filter(x => x.state === 'failed').length;
+  const xCount = executionItems.filter(x => /x|tweet/i.test(`${x.action || ''} ${x.label || ''} ${x.origin || ''}`)).length;
+
+  document.getElementById('statusSummary').innerHTML = `
+    <div class="metric"><div class="muted small">Queued executions</div><div class="value">${queuedCount}</div></div>
+    <div class="metric"><div class="muted small">Executed bridge steps</div><div class="value">${executedCount}</div></div>
+    <div class="metric"><div class="muted small">Failed executions</div><div class="value">${failedCount}</div></div>
+    <div class="metric"><div class="muted small">X-related executions</div><div class="value">${xCount}</div></div>
+  `;
+
+  document.getElementById('progressList').innerHTML = executionItems.length ? executionItems.slice(0, 8).map(x => {
+    const p = progressForExecution(x);
+    return `
+      <div class="progress-wrap">
+        <div class="progress-label"><span><strong>${esc(x.action)}</strong> — ${esc(x.label || x.origin || 'unknown target')}</span><span>${p.percent}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${p.percent}%"></div></div>
+        <div class="small muted tight">${esc(p.label)}${x.bridgeResult?.detail ? ` • ${esc(x.bridgeResult.detail)}` : ''}</div>
+      </div>
+    `;
+  }).join('') : '<div class="muted">No execution progress yet.</div>';
+
+  document.getElementById('activityLog').innerHTML = `
+    <div class="log-box">
+      <div><strong>Recent activity</strong></div>
+      ${executionItems.slice(0, 6).map(x => `<div class="small tight">${new Date(x.updatedAt || x.createdAt).toLocaleString()} — ${esc(x.action)} — ${esc(x.state)}${x.bridgeResult?.detail ? ` — ${esc(x.bridgeResult.detail)}` : ''}</div>`).join('') || '<div class="small tight muted">No recent execution activity.</div>'}
+    </div>
+  `;
+
   document.getElementById('sites').innerHTML = sites.length ? sites.map(s => `
     <div class="site">
       <div class="row">
