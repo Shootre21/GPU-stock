@@ -70,15 +70,16 @@ async function findExecutionForJob(jobId) {
 }
 
 async function runNextPortalJobCore() {
-  await sendWorkerHeartbeat('Checking for next portal v6 job.');
+  await sendWorkerHeartbeat('Checking for next portal v7 job.');
   const job = await claimNextJob();
   if (!job || !job.id) return { ok: false, error: 'No queued portal jobs found.' };
   const tab = await getActiveXTab();
   if (!tab?.id) {
     await updateJob(job.id, { state: 'queued', log: 'No active X tab found; job returned to queue.', lastError: 'No active X tab found.' });
+    await sendWorkerHeartbeat('No active X tab found; queued job left in portal.');
     return { ok: false, error: 'No active X tab found.' };
   }
-  await updateJob(job.id, { state: 'claimed', log: 'Worker is staging draft in X composer.' });
+  await updateJob(job.id, { state: 'staging', log: 'Worker is staging draft in X composer.' });
   const result = await chrome.tabs.sendMessage(tab.id, { type: 'bridge:stageDraft', draft: job.text || '' });
   const execution = await findExecutionForJob(job.id);
   if (execution?.id) {
@@ -91,12 +92,12 @@ async function runNextPortalJobCore() {
     });
   }
   if (result?.ok) {
-    await updateJob(job.id, { state: 'posted', log: 'Draft staged successfully in X composer.' });
-    await sendWorkerHeartbeat('Staged X post from portal v6 job.');
+    await updateJob(job.id, { state: 'ready', log: 'Draft staged successfully in X composer. Awaiting final publish automation.' });
+    await sendWorkerHeartbeat('Staged X post from portal v7 job.');
     return { ok: true, job, result, execution };
   }
   await updateJob(job.id, { state: 'failed', log: result?.error || 'Failed to stage X draft.', lastError: result?.error || 'Failed to stage X draft.' });
-  await sendWorkerHeartbeat('Failed to stage X post from portal v6 job.');
+  await sendWorkerHeartbeat('Failed to stage X post from portal v7 job.');
   return { ok: false, job, result, execution };
 }
 
@@ -110,9 +111,7 @@ chrome.alarms.onAlarm.addListener(async alarm => {
       await runNextPortalJobCore();
       return;
     }
-    const next = await getJson(`${BRIDGE_BASE}/next-x-execution`);
-    if (!next || !next.id) return;
-    await runNextXExecutionCore();
+    return;
   } catch {}
 });
 
