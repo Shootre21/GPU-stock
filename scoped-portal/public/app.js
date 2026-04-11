@@ -1,5 +1,5 @@
 function esc(s){return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
-function badgeFor(status){ if(['authorized','approved','executed','fresh','reported'].includes(status)) return 'good'; if(['revoked','denied','failed','stale'].includes(status)) return 'bad'; return 'warn'; }
+function badgeFor(status){ if(['authorized','approved','executed','fresh','reported','posted','online'].includes(status)) return 'good'; if(['revoked','denied','failed','stale','cancelled','offline'].includes(status)) return 'bad'; return 'warn'; }
 async function api(path, opts={}){ const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opts}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 async function safeApi(path){ try { return await api(path); } catch (e) { return { error: String(e) }; } }
 function progressForExecution(x){
@@ -49,6 +49,10 @@ async function load(){
       <div class="small tight">${esc(job.text || '')}</div>
       <div class="small muted tight">Claimed by: ${esc(job.claimedBy || 'nobody')} • Created: ${new Date(job.createdAt).toLocaleString()}</div>
       ${(job.logs || []).slice(-3).map(log => `<div class="small muted tight">• ${new Date(log.at).toLocaleString()} — ${esc(log.message)}</div>`).join('')}
+      <div class="inline-actions">
+        ${job.state==='failed' || job.state==='cancelled' ? `<button class="secondary" onclick="retryJob('${job.id}')">Retry</button>` : ''}
+        ${['queued','claimed','staging','ready'].includes(job.state) ? `<button onclick="cancelJob('${job.id}')">Cancel</button>` : ''}
+      </div>
     </div>
   `).join('') : '<div class="muted">No jobs in the v6 engine yet.</div>';
 
@@ -137,7 +141,18 @@ async function requestAction(id){ const action = prompt('Requested action (examp
 async function decideRequest(id, status){ await api(`/api/requests/${id}`, {method:'PATCH', body: JSON.stringify({status})}); load(); }
 async function queueExecution(siteId, requestId, action){ const payload = prompt('Optional execution payload / draft content:') || ''; await api(`/api/sites/${siteId}/queue-execution`, {method:'POST', body: JSON.stringify({requestId, action, payload})}); load(); }
 async function updateExecution(id, state){ await api(`/api/executions/${id}`, {method:'PATCH', body: JSON.stringify({state})}); load(); }
-window.launchLogin=launchLogin; window.markLogin=markLogin; window.markFresh=markFresh; window.revokeSite=revokeSite; window.requestAction=requestAction; window.decideRequest=decideRequest; window.queueExecution=queueExecution; window.updateExecution=updateExecution;
+async function retryJob(id){ await api(`/api/jobs/${id}/retry`, {method:'POST', body:'{}'}); load(); }
+async function cancelJob(id){ await api(`/api/jobs/${id}/cancel`, {method:'POST', body:'{}'}); load(); }
+window.launchLogin=launchLogin; window.markLogin=markLogin; window.markFresh=markFresh; window.revokeSite=revokeSite; window.requestAction=requestAction; window.decideRequest=decideRequest; window.queueExecution=queueExecution; window.updateExecution=updateExecution; window.retryJob=retryJob; window.cancelJob=cancelJob;
+
+document.getElementById('xPostForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  await api('/api/jobs', { method:'POST', body: JSON.stringify({ platform:'x', kind:'post', text:f.text.value, priority:f.priority.value }) });
+  f.reset();
+  f.priority.value = 'normal';
+  load();
+});
 
 document.getElementById('siteForm').addEventListener('submit', async (e) => {
   e.preventDefault(); const f = e.target;

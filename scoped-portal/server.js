@@ -108,7 +108,7 @@ function normalizeJob(body, site) {
     claimedBy: null,
     completedAt: null,
     lastError: null,
-    logs: [{ at: new Date().toISOString(), message: 'Job created in portal v6 engine.' }],
+    logs: [{ at: new Date().toISOString(), message: 'Job created in portal v7 runner.' }],
     siteLabel: site.label,
     siteOrigin: site.origin
   };
@@ -206,6 +206,20 @@ const server = http.createServer(async (req, res) => {
     } catch (e) { return send(res, 400, { error: String(e) }); }
   }
 
+  if (url.pathname === '/api/jobs' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const site = body.platform === 'x' ? findXSite() : null;
+      if (!site) return send(res, 404, { error: 'No matching site is registered for this platform.' });
+      const jobs = readJson(JOBS_FILE, []);
+      const job = normalizeJob(body, site);
+      jobs.push(job);
+      writeJson(JOBS_FILE, jobs);
+      audit('job_created', { executionId: job.id, requestedAction: job.kind, siteId: job.siteId, label: job.siteLabel });
+      return send(res, 200, job);
+    } catch (e) { return send(res, 400, { error: String(e) }); }
+  }
+
   if (url.pathname.startsWith('/api/jobs/') && req.method === 'PATCH') {
     try {
       const id = url.pathname.split('/').pop();
@@ -225,6 +239,38 @@ const server = http.createServer(async (req, res) => {
       };
       writeJson(JOBS_FILE, jobs);
       audit('job_updated', { executionId: id, requestedAction: jobs[idx].kind, decision: jobs[idx].state, siteId: jobs[idx].siteId });
+      return send(res, 200, jobs[idx]);
+    } catch (e) { return send(res, 400, { error: String(e) }); }
+  }
+
+  if (url.pathname.startsWith('/api/jobs/') && url.pathname.endsWith('/retry') && req.method === 'POST') {
+    try {
+      const id = url.pathname.split('/')[3];
+      const jobs = readJson(JOBS_FILE, []);
+      const idx = jobs.findIndex(j => j.id === id);
+      if (idx === -1) return send(res, 404, { error: 'Not found' });
+      jobs[idx].state = 'queued';
+      jobs[idx].updatedAt = new Date().toISOString();
+      jobs[idx].lastError = null;
+      jobs[idx].logs.push({ at: new Date().toISOString(), message: 'Job re-queued from portal.' });
+      writeJson(JOBS_FILE, jobs);
+      audit('job_retried', { executionId: id, requestedAction: jobs[idx].kind, siteId: jobs[idx].siteId });
+      return send(res, 200, jobs[idx]);
+    } catch (e) { return send(res, 400, { error: String(e) }); }
+  }
+
+  if (url.pathname.startsWith('/api/jobs/') && url.pathname.endsWith('/cancel') && req.method === 'POST') {
+    try {
+      const id = url.pathname.split('/')[3];
+      const jobs = readJson(JOBS_FILE, []);
+      const idx = jobs.findIndex(j => j.id === id);
+      if (idx === -1) return send(res, 404, { error: 'Not found' });
+      jobs[idx].state = 'cancelled';
+      jobs[idx].updatedAt = new Date().toISOString();
+      jobs[idx].completedAt = new Date().toISOString();
+      jobs[idx].logs.push({ at: new Date().toISOString(), message: 'Job cancelled from portal.' });
+      writeJson(JOBS_FILE, jobs);
+      audit('job_cancelled', { executionId: id, requestedAction: jobs[idx].kind, siteId: jobs[idx].siteId });
       return send(res, 200, jobs[idx]);
     } catch (e) { return send(res, 400, { error: String(e) }); }
   }
