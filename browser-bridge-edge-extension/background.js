@@ -78,6 +78,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ ok: true, site, page, stored });
         return;
       }
+      if (message.type === 'bridge:stageDraft') {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const site = tab ? await getSiteContext(tab) : null;
+        if (!tab?.id) {
+          sendResponse({ ok: false, error: 'No active tab' });
+          return;
+        }
+        const result = await chrome.tabs.sendMessage(tab.id, { type: 'bridge:stageDraft', draft: message.draft || '' });
+        if (site?.id) {
+          await postJson(`${BRIDGE_BASE}/execution-result`, {
+            siteId: site.id,
+            state: result?.ok ? 'executed' : 'failed',
+            detail: result?.note || result?.error || 'stageDraft attempted',
+            url: tab.url
+          });
+        }
+        sendResponse({ ok: true, site, result });
+        return;
+      }
       sendResponse({ ok: false, error: 'Unknown message type' });
     } catch (error) {
       sendResponse({ ok: false, error: String(error) });

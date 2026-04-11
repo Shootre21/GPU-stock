@@ -25,6 +25,12 @@ async function loadContext() {
     const result = await send({ type: 'bridge:queueDraft', draft, target: 'social_post' });
     document.getElementById('result').textContent = JSON.stringify(result, null, 2);
   });
+  document.getElementById('stageBtn').addEventListener('click', async () => {
+    const draft = document.getElementById('draft').value.trim();
+    if (!draft) return;
+    const result = await send({ type: 'bridge:stageDraft', draft });
+    document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+  });
   document.getElementById('contextBtn').addEventListener('click', async () => {
     const result = await send({ type: 'bridge:collectPageContext' });
     document.getElementById('result').textContent = JSON.stringify(result, null, 2);
