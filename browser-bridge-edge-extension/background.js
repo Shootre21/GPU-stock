@@ -20,6 +20,12 @@ async function postJson(url, body) {
   try { return JSON.parse(text); } catch { return { raw: text, ok: response.ok }; }
 }
 
+async function getJson(url) {
+  const response = await fetch(url);
+  const text = await response.text();
+  try { return JSON.parse(text); } catch { return { raw: text, ok: response.ok }; }
+}
+
 async function collectPageContext(tabId) {
   const [context] = await chrome.tabs.sendMessage(tabId, { type: 'bridge:collectPageContext' });
   return context;
@@ -91,10 +97,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             siteId: site.id,
             state: result?.ok ? 'executed' : 'failed',
             detail: result?.note || result?.error || 'stageDraft attempted',
-            url: tab.url
+            url: tab.url,
+            executionId: message.executionId || null
           });
         }
         sendResponse({ ok: true, site, result });
+        return;
+      }
+      if (message.type === 'bridge:runNextXExecution') {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const site = tab ? await getSiteContext(tab) : null;
+        if (!tab?.id) {
+          sendResponse({ ok: false, error: 'No active tab' });
+          return;
+        }
+        const next = await getJson(`${BRIDGE_BASE}/next-x-execution`);
+        if (!next || next.error) {
+          sendResponse({ ok: false, error: next?.error || 'No queued X execution found.' });
+          return;
+        }
+        if (!next.id) {
+          sendResponse({ ok: false, error: 'No queued X execution found.' });
+          return;
+        }
+        const result = await chrome.tabs.sendMessage(tab.id, { type: 'bridge:stageDraft', draft: next.payload || '' });
+        await postJson(`${BRIDGE_BASE}/execution-result`, {
+          executionId: next.id,
+          siteId: next.siteId || site?.id || null,
+          state: result?.ok ? 'executed' : 'failed',
+          detail: result?.note || result?.error || 'runNextXExecution attempted',
+          url: tab.url
+        });
+        sendResponse({ ok: true, site, execution: next, result });
         return;
       }
       sendResponse({ ok: false, error: 'Unknown message type' });

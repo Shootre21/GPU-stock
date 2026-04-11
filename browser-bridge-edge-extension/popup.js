@@ -31,6 +31,10 @@ async function loadContext() {
     const result = await send({ type: 'bridge:stageDraft', draft });
     document.getElementById('result').textContent = JSON.stringify(result, null, 2);
   });
+  document.getElementById('runExecutionBtn').addEventListener('click', async () => {
+    const result = await send({ type: 'bridge:runNextXExecution' });
+    document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+  });
   document.getElementById('contextBtn').addEventListener('click', async () => {
     const result = await send({ type: 'bridge:collectPageContext' });
     document.getElementById('result').textContent = JSON.stringify(result, null, 2);

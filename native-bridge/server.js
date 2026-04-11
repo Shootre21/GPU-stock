@@ -24,6 +24,10 @@ function readPageContexts() { return readJson(PAGE_CONTEXT_FILE, []); }
 function writePageContexts(items) { writeJson(PAGE_CONTEXT_FILE, items); }
 function readExecutionLog() { return readJson(EXECUTION_LOG_FILE, []); }
 function writeExecutionLog(items) { writeJson(EXECUTION_LOG_FILE, items); }
+function matchesXExecution(item) {
+  return ['post_tweet', 'post_x', 'draft_social_post', 'draft_post', 'social_post'].includes(item.action)
+    || /x|tweet/i.test(`${item.label || ''} ${item.origin || ''} ${item.action || ''}`);
+}
 function send(res, code, body, type='application/json') {
   res.writeHead(code, {
     'Content-Type': type,
@@ -100,6 +104,15 @@ const server = http.createServer(async (req, res) => {
       return send(res, 502, { error: String(error) });
     }
   }
+  if (url.pathname === '/next-x-execution' && req.method === 'GET') {
+    try {
+      const executions = await requestPortal('/api/executions');
+      const next = (Array.isArray(executions) ? executions : []).find(item => item.state === 'queued' && matchesXExecution(item));
+      return send(res, 200, next || null);
+    } catch (error) {
+      return send(res, 502, { error: String(error) });
+    }
+  }
   if (url.pathname === '/queue-draft' && req.method === 'POST') {
     try {
       const body = await parseBody(req);
@@ -160,7 +173,16 @@ const server = http.createServer(async (req, res) => {
       items.push(item);
       writeExecutionLog(items.slice(-300));
       if (body.executionId) {
-        try { await requestPortal(`/api/executions/${body.executionId}`, 'PATCH', { state: body.state || 'executed' }); } catch {}
+        try {
+          await requestPortal(`/api/executions/${body.executionId}`, 'PATCH', {
+            state: body.state || 'executed',
+            bridgeResult: {
+              detail: body.detail || '',
+              url: body.url || '',
+              reportedAt: new Date().toISOString()
+            }
+          });
+        } catch {}
       }
       return send(res, 200, item);
     } catch (error) {
