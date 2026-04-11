@@ -102,6 +102,11 @@ async function runNextPortalJobCore() {
 }
 
 chrome.alarms.create('poll-x-executions', { periodInMinutes: 0.5 });
+sendWorkerHeartbeat('Worker initialized.').catch(() => {});
+chrome.tabs.onActivated.addListener(() => { sendWorkerHeartbeat('Tab activated.').catch(() => {}); });
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo, _tab) => {
+  if (changeInfo.status === 'complete') sendWorkerHeartbeat('Tab updated.').catch(() => {});
+});
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== 'poll-x-executions') return;
   try {
