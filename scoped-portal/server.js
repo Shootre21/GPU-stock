@@ -11,6 +11,7 @@ const SITES_FILE = path.join(DATA_DIR, 'sites.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
 const REQUESTS_FILE = path.join(DATA_DIR, 'requests.json');
 const EXECUTIONS_FILE = path.join(DATA_DIR, 'executions.json');
+const BRIDGE_BASE = process.env.BRIDGE_BASE || 'http://127.0.0.1:4318';
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 for (const [file, empty] of [[SITES_FILE,'[]'],[AUDIT_FILE,'[]'],[REQUESTS_FILE,'[]'],[EXECUTIONS_FILE,'[]']]) {
@@ -22,6 +23,23 @@ function writeJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, n
 function send(res, code, body, type='application/json') { res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' }); res.end(type==='application/json' ? JSON.stringify(body, null, 2) : body); }
 function audit(action, payload={}) { const entries = readJson(AUDIT_FILE, []); entries.push({ id: randomUUID(), at: new Date().toISOString(), action, ...payload }); writeJson(AUDIT_FILE, entries.slice(-1500)); }
 function parseBody(req) { return new Promise((resolve, reject) => { let data=''; req.on('data', c => data += c); req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch (e) { reject(e); } }); }); }
+function requestJson(targetUrl) {
+  return new Promise((resolve, reject) => {
+    const target = new URL(targetUrl);
+    const req = http.request({ hostname: target.hostname, port: target.port, path: target.pathname + target.search, method: 'GET' }, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          if (res.statusCode >= 400) return reject(new Error(data || `HTTP ${res.statusCode}`));
+          resolve(data ? JSON.parse(data) : {});
+        } catch (error) { reject(error); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
 function defaultBrowserLaunch(origin) {
   return {
     method: 'manual_browser_login',
@@ -82,6 +100,12 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/audit' && req.method === 'GET') return send(res, 200, readJson(AUDIT_FILE, []).slice().reverse());
   if (url.pathname === '/api/requests' && req.method === 'GET') return send(res, 200, readJson(REQUESTS_FILE, []).slice().reverse());
   if (url.pathname === '/api/executions' && req.method === 'GET') return send(res, 200, readJson(EXECUTIONS_FILE, []).slice().reverse());
+  if (url.pathname === '/api/bridge/queue' && req.method === 'GET') {
+    try { return send(res, 200, await requestJson(`${BRIDGE_BASE}/queue`)); } catch (e) { return send(res, 502, { error: String(e) }); }
+  }
+  if (url.pathname === '/api/bridge/page-context' && req.method === 'GET') {
+    try { return send(res, 200, await requestJson(`${BRIDGE_BASE}/page-context`)); } catch (e) { return send(res, 502, { error: String(e) }); }
+  }
 
   if (url.pathname === '/api/sites' && req.method === 'POST') {
     try {

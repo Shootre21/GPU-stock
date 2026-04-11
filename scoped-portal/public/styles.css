@@ -28,4 +28,6 @@ button { background:linear-gradient(90deg,var(--accent),#22d3ee); color:white; b
 .secondary { background:#1a2443; }
 .code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .list { margin:8px 0 0 18px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word; }
+.tight { margin-top: 6px; }
 @media (max-width: 900px) { .grid, .lower { grid-template-columns:1fr; } }

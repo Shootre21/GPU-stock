@@ -1,8 +1,9 @@
 function esc(s){return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
-function badgeFor(status){ if(['authorized','approved','executed','fresh'].includes(status)) return 'good'; if(['revoked','denied','failed','stale'].includes(status)) return 'bad'; return 'warn'; }
+function badgeFor(status){ if(['authorized','approved','executed','fresh','reported'].includes(status)) return 'good'; if(['revoked','denied','failed','stale'].includes(status)) return 'bad'; return 'warn'; }
 async function api(path, opts={}){ const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opts}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function safeApi(path){ try { return await api(path); } catch (e) { return { error: String(e) }; } }
 async function load(){
-  const [sites, audit, requests, executions] = await Promise.all([api('/api/sites'), api('/api/audit'), api('/api/requests'), api('/api/executions')]);
+  const [sites, audit, requests, executions, bridgeQueue, bridgeContext] = await Promise.all([api('/api/sites'), api('/api/audit'), api('/api/requests'), api('/api/executions'), safeApi('/api/bridge/queue'), safeApi('/api/bridge/page-context')]);
   document.getElementById('sites').innerHTML = sites.length ? sites.map(s => `
     <div class="site">
       <div class="row">
@@ -44,6 +45,25 @@ async function load(){
     </div>
   `).join('') : '<div class="muted">No execution items yet.</div>';
 
+  const bridgeQueueItems = Array.isArray(bridgeQueue) ? bridgeQueue : [];
+  const bridgeContextItems = Array.isArray(bridgeContext) ? bridgeContext : [];
+
+  document.getElementById('bridgeQueue').innerHTML = bridgeQueueItems.length ? bridgeQueueItems.slice(0, 30).map(item => `
+    <div class="request">
+      <div class="row"><div><strong>${esc(item.target || 'generic')}</strong><div class="small muted">${esc(item.title || item.url || 'Untitled')}</div></div><div><span class="badge ${badgeFor(item.state)}">${esc(item.state)}</span></div></div>
+      <div class="small tight">${esc(item.draft || '')}</div>
+      <div class="small muted mono tight">site=${esc(item.siteId || 'none')} • pageContext=${esc(item.pageContextId || 'none')}</div>
+    </div>
+  `).join('') : `<div class="muted">${bridgeQueue.error ? esc(bridgeQueue.error) : 'No bridge drafts queued yet.'}</div>`;
+
+  document.getElementById('bridgeContext').innerHTML = bridgeContextItems.length ? bridgeContextItems.slice(0, 30).map(item => `
+    <div class="request">
+      <div class="row"><div><strong>${esc(item.platform || 'generic')}</strong><div class="small muted">${esc(item.title || item.url || 'Untitled')}</div></div><div><span class="badge ${badgeFor('fresh')}">captured</span></div></div>
+      <div class="small muted mono tight">${esc(item.url || '')}</div>
+      <div class="small tight">${esc((item.textSample || '').slice(0, 280) || 'No text sample')}</div>
+    </div>
+  `).join('') : `<div class="muted">${bridgeContext.error ? esc(bridgeContext.error) : 'No bridge page context captured yet.'}</div>`;
+
   document.getElementById('audit').innerHTML = audit.length ? audit.slice(0, 80).map(a => `
     <div class="audit-entry">
       <div><strong>${esc(a.action)}</strong></div>
@@ -67,4 +87,6 @@ document.getElementById('siteForm').addEventListener('submit', async (e) => {
   await api('/api/sites', {method:'POST', body: JSON.stringify(payload)});
   f.reset(); f.read.checked=true; f.draft.checked=true; f.postWithApproval.checked=true; f.allowedActions.value='read_page,draft_post,draft_message'; load();
 });
+document.getElementById('refreshBtn').addEventListener('click', load);
 load();
+setInterval(load, 15000);
