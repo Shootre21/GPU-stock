@@ -174,5 +174,49 @@
     "createdAt": "2026-04-10T21:53:04.205Z",
     "updatedAt": "2026-04-10T21:53:16.785Z",
     "revokedAt": null
+  },
+  {
+    "id": "29e85a16-f8fd-4dc6-9241-7e917989e8d2",
+    "label": "X ",
+    "origin": "https://x.com",
+    "notes": "Post, Read, Comment ,Repost",
+    "status": "authorized",
+    "permissions": {
+      "read": true,
+      "draft": true,
+      "postWithApproval": true,
+      "changeSettingsWithApproval": false,
+      "browserLaunch": true
+    },
+    "allowedActions": [
+      "read_page",
+      "draft_post",
+      "draft_message"
+    ],
+    "browserLaunch": {
+      "method": "manual_browser_login",
+      "targetOrigin": "https://x.com",
+      "browserProfile": "openclaw-controlled",
+      "steps": [
+        "Open a dedicated browser profile for https://x.com",
+        "Navigate to https://x.com",
+        "Log in manually yourself",
+        "Complete MFA/challenges manually if prompted",
+        "Return here and mark manual login done",
+        "Only allow posting or settings changes with explicit approval"
+      ]
+    },
+    "session": {
+      "browserProfile": "openclaw-controlled",
+      "state": "authorized",
+      "freshness": "fresh",
+      "lastManualLoginAt": "2026-04-11T06:02:46.440Z",
+      "lastValidatedAt": "2026-04-11T06:02:46.440Z",
+      "lastExecutionAt": null,
+      "browserHookStatus": "manual_login_complete_placeholder"
+    },
+    "createdAt": "2026-04-11T06:02:29.259Z",
+    "updatedAt": "2026-04-11T06:02:46.460Z",
+    "revokedAt": null
   }
 ]

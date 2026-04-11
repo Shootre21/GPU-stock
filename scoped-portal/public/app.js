@@ -10,7 +10,7 @@ function progressForExecution(x){
   return { percent: 10, label: x.state || 'Pending' };
 }
 async function load(){
-  const [sites, audit, requests, executions, bridgeQueue, bridgeContext] = await Promise.all([api('/api/sites'), api('/api/audit'), api('/api/requests'), api('/api/executions'), safeApi('/api/bridge/queue'), safeApi('/api/bridge/page-context')]);
+  const [sites, audit, requests, executions, bridgeQueue, bridgeContext, jobs, worker] = await Promise.all([api('/api/sites'), api('/api/audit'), api('/api/requests'), api('/api/executions'), safeApi('/api/bridge/queue'), safeApi('/api/bridge/page-context'), safeApi('/api/jobs'), safeApi('/api/worker')]);
   const executionItems = Array.isArray(executions) ? executions : [];
   const queuedCount = executionItems.filter(x => x.state === 'queued').length;
   const executedCount = executionItems.filter(x => x.state === 'executed').length;
@@ -41,6 +41,26 @@ async function load(){
       ${executionItems.slice(0, 6).map(x => `<div class="small tight">${new Date(x.updatedAt || x.createdAt).toLocaleString()} — ${esc(x.action)} — ${esc(x.state)}${x.bridgeResult?.detail ? ` — ${esc(x.bridgeResult.detail)}` : ''}</div>`).join('') || '<div class="small tight muted">No recent execution activity.</div>'}
     </div>
   `;
+
+  const jobItems = Array.isArray(jobs) ? jobs : [];
+  document.getElementById('jobs').innerHTML = jobItems.length ? jobItems.slice(0, 20).map(job => `
+    <div class="request">
+      <div class="row"><div><strong>${esc(job.kind)}</strong><div class="small muted">${esc(job.siteLabel || job.siteOrigin || job.platform)}</div></div><div><span class="badge ${badgeFor(job.state)}">${esc(job.state)}</span></div></div>
+      <div class="small tight">${esc(job.text || '')}</div>
+      <div class="small muted tight">Claimed by: ${esc(job.claimedBy || 'nobody')} • Created: ${new Date(job.createdAt).toLocaleString()}</div>
+      ${(job.logs || []).slice(-3).map(log => `<div class="small muted tight">• ${new Date(log.at).toLocaleString()} — ${esc(log.message)}</div>`).join('')}
+    </div>
+  `).join('') : '<div class="muted">No jobs in the v6 engine yet.</div>';
+
+  document.getElementById('workerState').innerHTML = worker && !worker.error ? `
+    <div class="request">
+      <div class="row"><div><strong>${esc(worker.workerId || 'local-browser-worker')}</strong><div class="small muted">${esc(worker.platform || 'x')}</div></div><div><span class="badge ${badgeFor(worker.status || 'warn')}">${esc(worker.status || 'unknown')}</span></div></div>
+      <div class="small tight">Active URL: <span class="mono">${esc(worker.activeUrl || 'n/a')}</span></div>
+      <div class="small tight">Tab title: ${esc(worker.activeTabTitle || 'n/a')}</div>
+      <div class="small muted tight">Last seen: ${worker.lastSeenAt ? new Date(worker.lastSeenAt).toLocaleString() : 'never'}</div>
+      <div class="small muted tight">${esc(worker.note || '')}</div>
+    </div>
+  ` : `<div class="muted">${worker?.error ? esc(worker.error) : 'No worker heartbeat yet.'}</div>`;
 
   document.getElementById('sites').innerHTML = sites.length ? sites.map(s => `
     <div class="site">

@@ -10,8 +10,8 @@
   <div class="wrap">
     <header>
       <div>
-        <h1>Scoped Access Portal v5</h1>
-        <p class="muted">Control layer + bridge visibility + X execution loop scaffold for future browser-backed site actions.</p>
+        <h1>Scoped Access Portal v6</h1>
+        <p class="muted">Job-engine control plane for Telegram-to-browser workflows with worker state, progress, and execution tracking.</p>
       </div>
     </header>
 
@@ -50,6 +50,17 @@
       <div id="statusSummary" class="grid lower"></div>
       <div id="progressList"></div>
       <div id="activityLog"></div>
+    </section>
+
+    <section class="grid lower">
+      <div class="card">
+        <h2>Portal jobs</h2>
+        <div id="jobs"></div>
+      </div>
+      <div class="card">
+        <h2>Worker state</h2>
+        <div id="workerState"></div>
+      </div>
     </section>
 
     <section class="card">

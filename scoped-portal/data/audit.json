@@ -102,5 +102,65 @@
     "status": "authorized",
     "origin": "https://github.com/",
     "label": "Github"
+  },
+  {
+    "id": "616efc0c-26cf-4dc5-ba02-3e4b6d750dd8",
+    "at": "2026-04-11T05:45:28.091Z",
+    "action": "x_post_created",
+    "executionId": "88b72b62-2c0c-4c1c-809b-69ae8df624b5",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "requestedAction": "post_x"
+  },
+  {
+    "id": "0b81cf49-24aa-4b5a-ad6b-4b0307a6a5ad",
+    "at": "2026-04-11T05:46:08.098Z",
+    "action": "execution_updated",
+    "executionId": "88b72b62-2c0c-4c1c-809b-69ae8df624b5",
+    "state": "executed",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "requestedAction": "post_x"
+  },
+  {
+    "id": "87d3a686-c4cf-4003-bd0a-821ed39749a2",
+    "at": "2026-04-11T05:53:09.727Z",
+    "action": "x_post_created",
+    "executionId": "ff08a84a-8bff-47c5-a2ed-7da85ba94198",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "requestedAction": "post_x"
+  },
+  {
+    "id": "8fad7acd-4c47-4dbc-b2a7-869519510ae5",
+    "at": "2026-04-11T05:53:17.441Z",
+    "action": "execution_updated",
+    "executionId": "ff08a84a-8bff-47c5-a2ed-7da85ba94198",
+    "state": "executed",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "requestedAction": "post_x"
+  },
+  {
+    "id": "4ac31b4f-f893-4cc4-b318-58815dad43a4",
+    "at": "2026-04-11T06:02:29.260Z",
+    "action": "site_created",
+    "siteId": "29e85a16-f8fd-4dc6-9241-7e917989e8d2",
+    "origin": "https://x.com",
+    "label": "X "
+  },
+  {
+    "id": "933c22ef-c8df-417f-bd4a-d08ee314dc00",
+    "at": "2026-04-11T06:02:38.605Z",
+    "action": "login_launch_requested",
+    "siteId": "29e85a16-f8fd-4dc6-9241-7e917989e8d2",
+    "origin": "https://x.com",
+    "label": "X ",
+    "browserProfile": "openclaw-controlled"
+  },
+  {
+    "id": "b307f46b-cb5b-404e-85c8-cfe690a2be27",
+    "at": "2026-04-11T06:02:46.461Z",
+    "action": "site_updated",
+    "siteId": "29e85a16-f8fd-4dc6-9241-7e917989e8d2",
+    "status": "authorized",
+    "origin": "https://x.com",
+    "label": "X "
   }
 ]

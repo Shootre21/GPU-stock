@@ -11,10 +11,12 @@ const SITES_FILE = path.join(DATA_DIR, 'sites.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit.json');
 const REQUESTS_FILE = path.join(DATA_DIR, 'requests.json');
 const EXECUTIONS_FILE = path.join(DATA_DIR, 'executions.json');
+const JOBS_FILE = path.join(DATA_DIR, 'jobs.json');
+const WORKER_FILE = path.join(DATA_DIR, 'worker-state.json');
 const BRIDGE_BASE = process.env.BRIDGE_BASE || 'http://127.0.0.1:4318';
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
-for (const [file, empty] of [[SITES_FILE,'[]'],[AUDIT_FILE,'[]'],[REQUESTS_FILE,'[]'],[EXECUTIONS_FILE,'[]']]) {
+for (const [file, empty] of [[SITES_FILE,'[]'],[AUDIT_FILE,'[]'],[REQUESTS_FILE,'[]'],[EXECUTIONS_FILE,'[]'],[JOBS_FILE,'[]'],[WORKER_FILE,'{}']]) {
   if (!fs.existsSync(file)) fs.writeFileSync(file, empty);
 }
 
@@ -91,6 +93,27 @@ function findXSite() {
   return sites.find(site => /x\.com|twitter\.com/i.test(site.origin || site.label || '')) || null;
 }
 
+function normalizeJob(body, site) {
+  return {
+    id: randomUUID(),
+    siteId: site.id,
+    platform: body.platform || 'x',
+    kind: body.kind || 'post',
+    text: body.text || '',
+    state: 'queued',
+    priority: body.priority || 'normal',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    claimedAt: null,
+    claimedBy: null,
+    completedAt: null,
+    lastError: null,
+    logs: [{ at: new Date().toISOString(), message: 'Job created in portal v6 engine.' }],
+    siteLabel: site.label,
+    siteOrigin: site.origin
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (req.method === 'OPTIONS') {
@@ -105,6 +128,8 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/audit' && req.method === 'GET') return send(res, 200, readJson(AUDIT_FILE, []).slice().reverse());
   if (url.pathname === '/api/requests' && req.method === 'GET') return send(res, 200, readJson(REQUESTS_FILE, []).slice().reverse());
   if (url.pathname === '/api/executions' && req.method === 'GET') return send(res, 200, readJson(EXECUTIONS_FILE, []).slice().reverse());
+  if (url.pathname === '/api/jobs' && req.method === 'GET') return send(res, 200, readJson(JOBS_FILE, []).slice().reverse());
+  if (url.pathname === '/api/worker' && req.method === 'GET') return send(res, 200, readJson(WORKER_FILE, {}));
   if (url.pathname === '/api/bridge/queue' && req.method === 'GET') {
     try { return send(res, 200, await requestJson(`${BRIDGE_BASE}/queue`)); } catch (e) { return send(res, 502, { error: String(e) }); }
   }
@@ -116,10 +141,15 @@ const server = http.createServer(async (req, res) => {
       const body = await parseBody(req);
       const xSite = findXSite();
       if (!xSite) return send(res, 404, { error: 'No X site is registered in the portal.' });
+      const jobs = readJson(JOBS_FILE, []);
+      const job = normalizeJob({ ...body, platform: 'x', kind: 'post' }, xSite);
+      jobs.push(job);
+      writeJson(JOBS_FILE, jobs);
       const execs = readJson(EXECUTIONS_FILE, []);
       const item = {
         id: randomUUID(),
         siteId: xSite.id,
+        jobId: job.id,
         label: xSite.label,
         origin: xSite.origin,
         action: 'post_x',
@@ -134,8 +164,68 @@ const server = http.createServer(async (req, res) => {
       };
       execs.push(item);
       writeJson(EXECUTIONS_FILE, execs);
-      audit('x_post_created', { executionId: item.id, siteId: item.siteId, requestedAction: item.action });
-      return send(res, 200, item);
+      audit('x_post_created', { executionId: item.id, siteId: item.siteId, requestedAction: item.action, jobId: job.id });
+      return send(res, 200, { job, execution: item });
+    } catch (e) { return send(res, 400, { error: String(e) }); }
+  }
+
+  if (url.pathname === '/api/worker/heartbeat' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const current = readJson(WORKER_FILE, {});
+      const next = {
+        ...current,
+        workerId: body.workerId || current.workerId || 'local-browser-worker',
+        platform: body.platform || current.platform || 'x',
+        status: body.status || 'online',
+        activeUrl: body.activeUrl || current.activeUrl || '',
+        activeTabTitle: body.activeTabTitle || current.activeTabTitle || '',
+        lastSeenAt: new Date().toISOString(),
+        note: body.note || current.note || ''
+      };
+      writeJson(WORKER_FILE, next);
+      audit('worker_heartbeat', { requestedAction: next.status, origin: next.activeUrl || '', label: next.workerId });
+      return send(res, 200, next);
+    } catch (e) { return send(res, 400, { error: String(e) }); }
+  }
+
+  if (url.pathname === '/api/worker/next' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const jobs = readJson(JOBS_FILE, []);
+      const job = jobs.find(item => item.state === 'queued' && (body.platform ? item.platform === body.platform : true));
+      if (!job) return send(res, 200, null);
+      job.state = 'claimed';
+      job.claimedAt = new Date().toISOString();
+      job.claimedBy = body.workerId || 'local-browser-worker';
+      job.updatedAt = new Date().toISOString();
+      job.logs.push({ at: new Date().toISOString(), message: `Claimed by ${job.claimedBy}.` });
+      writeJson(JOBS_FILE, jobs);
+      audit('job_claimed', { requestedAction: job.kind, siteId: job.siteId, executionId: job.id, label: job.claimedBy });
+      return send(res, 200, job);
+    } catch (e) { return send(res, 400, { error: String(e) }); }
+  }
+
+  if (url.pathname.startsWith('/api/jobs/') && req.method === 'PATCH') {
+    try {
+      const id = url.pathname.split('/').pop();
+      const body = await parseBody(req);
+      const jobs = readJson(JOBS_FILE, []);
+      const idx = jobs.findIndex(j => j.id === id);
+      if (idx === -1) return send(res, 404, { error: 'Not found' });
+      const logs = jobs[idx].logs || [];
+      if (body.log) logs.push({ at: new Date().toISOString(), message: body.log });
+      jobs[idx] = {
+        ...jobs[idx],
+        state: body.state || jobs[idx].state,
+        updatedAt: new Date().toISOString(),
+        completedAt: ['posted', 'failed', 'cancelled'].includes(body.state) ? new Date().toISOString() : jobs[idx].completedAt,
+        lastError: body.lastError || jobs[idx].lastError || null,
+        logs
+      };
+      writeJson(JOBS_FILE, jobs);
+      audit('job_updated', { executionId: id, requestedAction: jobs[idx].kind, decision: jobs[idx].state, siteId: jobs[idx].siteId });
+      return send(res, 200, jobs[idx]);
     } catch (e) { return send(res, 400, { error: String(e) }); }
   }
 

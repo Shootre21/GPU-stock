@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "id": "88b72b62-2c0c-4c1c-809b-69ae8df624b5",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "label": "X posting",
+    "origin": "https://x.com/home",
+    "action": "post_x",
+    "payload": "Built a local browser bridge so AI posting has approvals, audit trails, and fewer chances to do something stupid. Slow, supervised automation beats reckless magic every time.",
+    "requestId": null,
+    "state": "executed",
+    "executionBridge": "x_execution_loop",
+    "createdAt": "2026-04-11T05:45:28.090Z",
+    "updatedAt": "2026-04-11T05:46:08.097Z",
+    "executedAt": "2026-04-11T05:46:08.097Z",
+    "approvalMode": "explicit_command",
+    "bridgeResult": null
+  },
+  {
+    "id": "ff08a84a-8bff-47c5-a2ed-7da85ba94198",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "label": "X posting",
+    "origin": "https://x.com/home",
+    "action": "post_x",
+    "payload": "Built a local browser bridge so AI posting has approvals, audit trails, and fewer chances to do something stupid. Slow, supervised automation beats reckless magic every time.",
+    "requestId": null,
+    "state": "executed",
+    "executionBridge": "x_execution_loop",
+    "createdAt": "2026-04-11T05:53:09.727Z",
+    "updatedAt": "2026-04-11T05:53:17.441Z",
+    "executedAt": "2026-04-11T05:53:17.441Z",
+    "approvalMode": "explicit_command",
+    "bridgeResult": null
+  }
+]
