@@ -1,1 +1,106 @@
-[]
+[
+  {
+    "id": "a6a7f645-6f3b-4cc2-ad38-2883dc69ec83",
+    "at": "2026-04-10T19:47:23.047Z",
+    "action": "site_created",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "origin": "https://x.com/home",
+    "label": "X posting"
+  },
+  {
+    "id": "2809a124-dace-436c-a3c0-69555d9ef280",
+    "at": "2026-04-10T19:47:40.082Z",
+    "action": "login_launch_requested",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "origin": "https://x.com/home",
+    "label": "X posting",
+    "browserProfile": "openclaw-controlled"
+  },
+  {
+    "id": "96a68ea5-fc3d-4392-b343-b006c93a8d24",
+    "at": "2026-04-10T19:52:53.619Z",
+    "action": "site_updated",
+    "siteId": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "status": "authorized",
+    "origin": "https://x.com/home",
+    "label": "X posting"
+  },
+  {
+    "id": "a8edd55c-88c5-4185-9376-18814e4769d8",
+    "at": "2026-04-10T20:36:16.889Z",
+    "action": "site_created",
+    "siteId": "3b1b4537-5107-4b6a-be06-89a582776f8e",
+    "origin": "https://mail.yahoo.com/",
+    "label": "Email and Sending and Receiving"
+  },
+  {
+    "id": "78ab98d5-a213-4429-abd9-6363f0a190b9",
+    "at": "2026-04-10T20:36:36.750Z",
+    "action": "login_launch_requested",
+    "siteId": "3b1b4537-5107-4b6a-be06-89a582776f8e",
+    "origin": "https://mail.yahoo.com/",
+    "label": "Email and Sending and Receiving",
+    "browserProfile": "openclaw-controlled"
+  },
+  {
+    "id": "307b40bd-0218-4b5a-a86a-f2908e3b2512",
+    "at": "2026-04-10T20:39:08.976Z",
+    "action": "site_updated",
+    "siteId": "3b1b4537-5107-4b6a-be06-89a582776f8e",
+    "status": "authorized",
+    "origin": "https://mail.yahoo.com/",
+    "label": "Email and Sending and Receiving"
+  },
+  {
+    "id": "3aa049be-80c9-4b02-a873-898f3dec7e6e",
+    "at": "2026-04-10T20:43:06.247Z",
+    "action": "site_created",
+    "siteId": "89e6428d-d7e4-4a71-8236-898519657250",
+    "origin": "https://claude.ai/",
+    "label": "Claude"
+  },
+  {
+    "id": "ac617743-dbec-4445-b74c-2ba667970a8e",
+    "at": "2026-04-10T20:43:10.301Z",
+    "action": "login_launch_requested",
+    "siteId": "89e6428d-d7e4-4a71-8236-898519657250",
+    "origin": "https://claude.ai/",
+    "label": "Claude",
+    "browserProfile": "openclaw-controlled"
+  },
+  {
+    "id": "f848938a-7c15-4df8-9225-001b82bb7ac1",
+    "at": "2026-04-10T20:43:28.025Z",
+    "action": "site_updated",
+    "siteId": "89e6428d-d7e4-4a71-8236-898519657250",
+    "status": "authorized",
+    "origin": "https://claude.ai/",
+    "label": "Claude"
+  },
+  {
+    "id": "9b179ac6-78b0-4a98-8063-dd0b32983133",
+    "at": "2026-04-10T21:53:04.206Z",
+    "action": "site_created",
+    "siteId": "1ac00c00-71c0-4215-b850-00ac23f7208a",
+    "origin": "https://github.com/",
+    "label": "Github"
+  },
+  {
+    "id": "ee13d520-df26-49c3-b6a2-15105b470f05",
+    "at": "2026-04-10T21:53:11.051Z",
+    "action": "login_launch_requested",
+    "siteId": "1ac00c00-71c0-4215-b850-00ac23f7208a",
+    "origin": "https://github.com/",
+    "label": "Github",
+    "browserProfile": "openclaw-controlled"
+  },
+  {
+    "id": "5ab68d67-fee3-4985-8b38-84d763e78c8f",
+    "at": "2026-04-10T21:53:16.787Z",
+    "action": "site_updated",
+    "siteId": "1ac00c00-71c0-4215-b850-00ac23f7208a",
+    "status": "authorized",
+    "origin": "https://github.com/",
+    "label": "Github"
+  }
+]

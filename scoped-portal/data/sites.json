@@ -1,1 +1,178 @@
-[]
+[
+  {
+    "id": "52c9cfdb-7fc5-4a54-bb40-1abf2aba842d",
+    "label": "X posting",
+    "origin": "https://x.com/home",
+    "notes": "posting , view accounts, and comments",
+    "status": "authorized",
+    "permissions": {
+      "read": true,
+      "draft": true,
+      "postWithApproval": true,
+      "changeSettingsWithApproval": false,
+      "browserLaunch": true
+    },
+    "allowedActions": [
+      "read_page",
+      "draft_post",
+      "draft_message"
+    ],
+    "browserLaunch": {
+      "method": "manual_browser_login",
+      "targetOrigin": "https://x.com/home",
+      "browserProfile": "openclaw-controlled",
+      "steps": [
+        "Open a dedicated browser profile for https://x.com/home",
+        "Navigate to https://x.com/home",
+        "Log in manually yourself",
+        "Complete MFA/challenges manually if prompted",
+        "Return here and mark manual login done",
+        "Only allow posting or settings changes with explicit approval"
+      ]
+    },
+    "session": {
+      "browserProfile": "openclaw-controlled",
+      "state": "authorized",
+      "freshness": "fresh",
+      "lastManualLoginAt": "2026-04-10T19:52:53.582Z",
+      "lastValidatedAt": "2026-04-10T19:52:53.582Z",
+      "lastExecutionAt": null,
+      "browserHookStatus": "manual_login_complete_placeholder"
+    },
+    "createdAt": "2026-04-10T19:47:23.032Z",
+    "updatedAt": "2026-04-10T19:52:53.615Z",
+    "revokedAt": null
+  },
+  {
+    "id": "3b1b4537-5107-4b6a-be06-89a582776f8e",
+    "label": "Email and Sending and Receiving",
+    "origin": "https://mail.yahoo.com/",
+    "notes": "Emailing, reading and sending.",
+    "status": "authorized",
+    "permissions": {
+      "read": true,
+      "draft": true,
+      "postWithApproval": true,
+      "changeSettingsWithApproval": false,
+      "browserLaunch": true
+    },
+    "allowedActions": [
+      "read_page",
+      "draft_post",
+      "draft_message"
+    ],
+    "browserLaunch": {
+      "method": "manual_browser_login",
+      "targetOrigin": "https://mail.yahoo.com/",
+      "browserProfile": "openclaw-controlled",
+      "steps": [
+        "Open a dedicated browser profile for https://mail.yahoo.com/",
+        "Navigate to https://mail.yahoo.com/",
+        "Log in manually yourself",
+        "Complete MFA/challenges manually if prompted",
+        "Return here and mark manual login done",
+        "Only allow posting or settings changes with explicit approval"
+      ]
+    },
+    "session": {
+      "browserProfile": "openclaw-controlled",
+      "state": "authorized",
+      "freshness": "fresh",
+      "lastManualLoginAt": "2026-04-10T20:39:09.094Z",
+      "lastValidatedAt": "2026-04-10T20:39:09.094Z",
+      "lastExecutionAt": null,
+      "browserHookStatus": "manual_login_complete_placeholder"
+    },
+    "createdAt": "2026-04-10T20:36:16.879Z",
+    "updatedAt": "2026-04-10T20:39:08.976Z",
+    "revokedAt": null
+  },
+  {
+    "id": "89e6428d-d7e4-4a71-8236-898519657250",
+    "label": "Claude",
+    "origin": "https://claude.ai/",
+    "notes": "ASK, research, read",
+    "status": "authorized",
+    "permissions": {
+      "read": true,
+      "draft": true,
+      "postWithApproval": true,
+      "changeSettingsWithApproval": false,
+      "browserLaunch": true
+    },
+    "allowedActions": [
+      "read_page",
+      "draft_post",
+      "draft_message"
+    ],
+    "browserLaunch": {
+      "method": "manual_browser_login",
+      "targetOrigin": "https://claude.ai/",
+      "browserProfile": "openclaw-controlled",
+      "steps": [
+        "Open a dedicated browser profile for https://claude.ai/",
+        "Navigate to https://claude.ai/",
+        "Log in manually yourself",
+        "Complete MFA/challenges manually if prompted",
+        "Return here and mark manual login done",
+        "Only allow posting or settings changes with explicit approval"
+      ]
+    },
+    "session": {
+      "browserProfile": "openclaw-controlled",
+      "state": "authorized",
+      "freshness": "fresh",
+      "lastManualLoginAt": "2026-04-10T20:43:27.986Z",
+      "lastValidatedAt": "2026-04-10T20:43:27.986Z",
+      "lastExecutionAt": null,
+      "browserHookStatus": "manual_login_complete_placeholder"
+    },
+    "createdAt": "2026-04-10T20:43:06.244Z",
+    "updatedAt": "2026-04-10T20:43:28.024Z",
+    "revokedAt": null
+  },
+  {
+    "id": "1ac00c00-71c0-4215-b850-00ac23f7208a",
+    "label": "Github",
+    "origin": "https://github.com/",
+    "notes": "Push, Commit, Pull",
+    "status": "authorized",
+    "permissions": {
+      "read": true,
+      "draft": true,
+      "postWithApproval": true,
+      "changeSettingsWithApproval": false,
+      "browserLaunch": true
+    },
+    "allowedActions": [
+      "read_page",
+      "draft_post",
+      "draft_message"
+    ],
+    "browserLaunch": {
+      "method": "manual_browser_login",
+      "targetOrigin": "https://github.com/",
+      "browserProfile": "openclaw-controlled",
+      "steps": [
+        "Open a dedicated browser profile for https://github.com/",
+        "Navigate to https://github.com/",
+        "Log in manually yourself",
+        "Complete MFA/challenges manually if prompted",
+        "Return here and mark manual login done",
+        "Only allow posting or settings changes with explicit approval"
+      ]
+    },
+    "session": {
+      "browserProfile": "openclaw-controlled",
+      "state": "authorized",
+      "freshness": "fresh",
+      "lastManualLoginAt": "2026-04-10T21:53:16.950Z",
+      "lastValidatedAt": "2026-04-10T21:53:16.951Z",
+      "lastExecutionAt": null,
+      "browserHookStatus": "manual_login_complete_placeholder"
+    },
+    "createdAt": "2026-04-10T21:53:04.205Z",
+    "updatedAt": "2026-04-10T21:53:16.785Z",
+    "revokedAt": null
+  }
+]

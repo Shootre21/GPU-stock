@@ -20,6 +20,11 @@ async function postJson(url, body) {
   try { return JSON.parse(text); } catch { return { raw: text, ok: response.ok }; }
 }
 
+async function collectPageContext(tabId) {
+  const [context] = await chrome.tabs.sendMessage(tabId, { type: 'bridge:collectPageContext' });
+  return context;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     try {
@@ -36,18 +41,41 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ ok: false, error: 'No scoped portal site matches this tab.' });
           return;
         }
+        const page = await collectPageContext(tab.id);
+        const pageContext = await postJson(`${BRIDGE_BASE}/page-context`, {
+          siteId: site.id,
+          platform: page?.platform || 'generic',
+          url: tab.url,
+          title: tab.title,
+          textSample: page?.textSample || ''
+        });
         const result = await postJson(`${BRIDGE_BASE}/queue-draft`, {
           siteId: site.id,
           url: tab.url,
           title: tab.title,
           draft: message.draft,
-          target: message.target || 'generic'
+          target: message.target || 'generic',
+          pageContextId: pageContext?.id || null
         });
-        sendResponse({ ok: true, site, result });
+        sendResponse({ ok: true, site, pageContext, result });
         return;
       }
-      if (message.type === 'bridge:pageSnapshot') {
-        sendResponse({ ok: true, html: document.documentElement?.outerHTML || '' });
+      if (message.type === 'bridge:collectPageContext') {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const site = tab ? await getSiteContext(tab) : null;
+        if (!tab?.id) {
+          sendResponse({ ok: false, error: 'No active tab' });
+          return;
+        }
+        const page = await collectPageContext(tab.id);
+        const stored = await postJson(`${BRIDGE_BASE}/page-context`, {
+          siteId: site?.id || null,
+          platform: page?.platform || 'generic',
+          url: tab.url,
+          title: tab.title,
+          textSample: page?.textSample || ''
+        });
+        sendResponse({ ok: true, site, page, stored });
         return;
       }
       sendResponse({ ok: false, error: 'Unknown message type' });

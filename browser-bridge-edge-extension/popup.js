@@ -25,4 +25,8 @@ async function loadContext() {
     const result = await send({ type: 'bridge:queueDraft', draft, target: 'social_post' });
     document.getElementById('result').textContent = JSON.stringify(result, null, 2);
   });
+  document.getElementById('contextBtn').addEventListener('click', async () => {
+    const result = await send({ type: 'bridge:collectPageContext' });
+    document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+  });
 })();
