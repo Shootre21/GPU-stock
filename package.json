@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dashboard/server.js",
     "portal": "node scoped-portal/server.js",
-    "browser-bridge": "node native-bridge/server.js"
+    "browser-bridge": "node native-bridge/server.js",
+    "local-worker": "node local-worker/server.js"
   }
 }
