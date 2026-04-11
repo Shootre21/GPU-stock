@@ -54,7 +54,7 @@ async function load(){
         ${['queued','claimed','staging','ready'].includes(job.state) ? `<button onclick="cancelJob('${job.id}')">Cancel</button>` : ''}
       </div>
     </div>
-  `).join('') : '<div class="muted">No jobs in the v6 engine yet.</div>';
+  `).join('') : '<div class="muted">No jobs in the v7 engine yet.</div>';
 
   document.getElementById('workerState').innerHTML = worker && !worker.error ? `
     <div class="request">
@@ -145,11 +145,13 @@ async function retryJob(id){ await api(`/api/jobs/${id}/retry`, {method:'POST', 
 async function cancelJob(id){ await api(`/api/jobs/${id}/cancel`, {method:'POST', body:'{}'}); load(); }
 window.launchLogin=launchLogin; window.markLogin=markLogin; window.markFresh=markFresh; window.revokeSite=revokeSite; window.requestAction=requestAction; window.decideRequest=decideRequest; window.queueExecution=queueExecution; window.updateExecution=updateExecution; window.retryJob=retryJob; window.cancelJob=cancelJob;
 
-document.getElementById('xPostForm').addEventListener('submit', async (e) => {
+document.getElementById('jobForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.target;
-  await api('/api/jobs', { method:'POST', body: JSON.stringify({ platform:'x', kind:'post', text:f.text.value, priority:f.priority.value }) });
+  await api('/api/jobs', { method:'POST', body: JSON.stringify({ platform:f.platform.value, kind:f.kind.value, text:f.text.value, priority:f.priority.value }) });
   f.reset();
+  f.platform.value = 'x';
+  f.kind.value = 'post';
   f.priority.value = 'normal';
   load();
 });

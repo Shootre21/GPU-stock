@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scoped Access Portal</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Scoped Access Portal v7</h1>
+        <p class="muted">Portal-first job runner with native post creation, worker state, retries, cancellation, and execution tracking.</p>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Create social/browser job</h2>
+        <form id="jobForm">
+          <label>Platform
+            <select name="platform">
+              <option value="x">X</option>
+              <option value="facebook">Facebook</option>
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="bluesky">Bluesky</option>
+              <option value="claude">Claude</option>
+              <option value="yahoo">Yahoo Mail</option>
+            </select>
+          </label>
+          <label>Job type
+            <select name="kind">
+              <option value="post">Post</option>
+              <option value="reply">Reply</option>
+              <option value="message">Message</option>
+              <option value="draft">Draft</option>
+            </select>
+          </label>
+          <label>Content<textarea name="text" placeholder="Write the content Larry should queue through the portal…" required></textarea></label>
+          <label>Priority
+            <select name="priority">
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <button type="submit">Create job</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Add website</h2>
+        <form id="siteForm">
+          <label>Label<input name="label" placeholder="X/Twitter posting" required /></label>
+          <label>Origin<input name="origin" placeholder="https://x.com" required /></label>
+          <label>Notes<textarea name="notes" placeholder="What this site is for, approval rules, account scope, etc."></textarea></label>
+          <div class="checks">
+            <label><input type="checkbox" name="read" checked /> Read</label>
+            <label><input type="checkbox" name="draft" checked /> Draft</label>
+            <label><input type="checkbox" name="postWithApproval" checked /> Post with approval</label>
+            <label><input type="checkbox" name="changeSettingsWithApproval" /> Change settings with approval</label>
+          </div>
+          <label>Allowed actions (comma-separated)<input name="allowedActions" value="read_page,draft_post,draft_message" /></label>
+          <button type="submit">Add site</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Execution monitor</h2>
+      <div id="statusSummary" class="grid lower"></div>
+      <div id="progressList"></div>
+      <div id="activityLog"></div>
+    </section>
+
+    <section class="grid lower">
+      <div class="card">
+        <h2>Portal jobs</h2>
+        <div id="jobs"></div>
+      </div>
+      <div class="card">
+        <h2>Worker state</h2>
+        <div id="workerState"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Approved sites</h2>
+      <div id="sites"></div>
+    </section>
+
+    <section class="grid lower">
+      <div class="card">
+        <h2>Approval queue</h2>
+        <div id="requests"></div>
+      </div>
+      <div class="card">
+        <h2>Execution queue</h2>
+        <div id="executions"></div>
+      </div>
+    </section>
+
+    <section class="grid lower">
+      <div class="card">
+        <h2>Bridge draft queue</h2>
+        <div id="bridgeQueue"></div>
+      </div>
+      <div class="card">
+        <h2>Bridge page context</h2>
+        <div id="bridgeContext"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2>Audit log</h2>
+        <button class="secondary" id="refreshBtn" type="button">Refresh</button>
+      </div>
+      <div id="audit"></div>
+    </section>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

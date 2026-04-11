@@ -93,6 +93,22 @@ function findXSite() {
   return sites.find(site => /x\.com|twitter\.com/i.test(site.origin || site.label || '')) || null;
 }
 
+function findPlatformSite(platform) {
+  const sites = readJson(SITES_FILE, []);
+  const checks = {
+    x: /x\.com|twitter\.com/i,
+    facebook: /facebook\.com/i,
+    instagram: /instagram\.com/i,
+    tiktok: /tiktok\.com/i,
+    bluesky: /bsky\.app|bluesky/i,
+    claude: /claude\.ai/i,
+    yahoo: /mail\.yahoo\.com|yahoo/i,
+  };
+  const pattern = checks[platform];
+  if (!pattern) return null;
+  return sites.find(site => pattern.test(`${site.origin || ''} ${site.label || ''}`)) || null;
+}
+
 function normalizeJob(body, site) {
   return {
     id: randomUUID(),
@@ -209,7 +225,7 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/jobs' && req.method === 'POST') {
     try {
       const body = await parseBody(req);
-      const site = body.platform === 'x' ? findXSite() : null;
+      const site = findPlatformSite(body.platform);
       if (!site) return send(res, 404, { error: 'No matching site is registered for this platform.' });
       const jobs = readJson(JOBS_FILE, []);
       const job = normalizeJob(body, site);
