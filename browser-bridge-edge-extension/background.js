@@ -31,6 +31,16 @@ async function collectPageContext(tabId) {
   return context;
 }
 
+chrome.alarms.create('poll-x-executions', { periodInMinutes: 0.5 });
+chrome.alarms.onAlarm.addListener(async alarm => {
+  if (alarm.name !== 'poll-x-executions') return;
+  try {
+    const next = await getJson(`${BRIDGE_BASE}/next-x-execution`);
+    if (!next || !next.id) return;
+    await runNextXExecutionCore();
+  } catch {}
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     try {

@@ -3,7 +3,7 @@
   "name": "Larry Browser Bridge",
   "version": "0.1.0",
   "description": "Edge extension bridge for scoped browser actions with local approval-aware handoff.",
-  "permissions": ["storage", "tabs", "scripting", "activeTab"],
+  "permissions": ["storage", "tabs", "scripting", "activeTab", "alarms"],
   "host_permissions": [
     "http://127.0.0.1:4217/*",
     "http://localhost:4217/*",

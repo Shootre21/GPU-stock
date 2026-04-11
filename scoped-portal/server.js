@@ -86,6 +86,11 @@ function normalizeSite(body) {
   };
 }
 
+function findXSite() {
+  const sites = readJson(SITES_FILE, []);
+  return sites.find(site => /x\.com|twitter\.com/i.test(site.origin || site.label || '')) || null;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (req.method === 'OPTIONS') {
@@ -105,6 +110,33 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === '/api/bridge/page-context' && req.method === 'GET') {
     try { return send(res, 200, await requestJson(`${BRIDGE_BASE}/page-context`)); } catch (e) { return send(res, 502, { error: String(e) }); }
+  }
+  if (url.pathname === '/api/create-x-post' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const xSite = findXSite();
+      if (!xSite) return send(res, 404, { error: 'No X site is registered in the portal.' });
+      const execs = readJson(EXECUTIONS_FILE, []);
+      const item = {
+        id: randomUUID(),
+        siteId: xSite.id,
+        label: xSite.label,
+        origin: xSite.origin,
+        action: 'post_x',
+        payload: body.text || '',
+        requestId: null,
+        state: 'queued',
+        executionBridge: 'x_execution_loop',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        executedAt: null,
+        approvalMode: body.approvalMode || 'explicit_command'
+      };
+      execs.push(item);
+      writeJson(EXECUTIONS_FILE, execs);
+      audit('x_post_created', { executionId: item.id, siteId: item.siteId, requestedAction: item.action });
+      return send(res, 200, item);
+    } catch (e) { return send(res, 400, { error: String(e) }); }
   }
 
   if (url.pathname === '/api/sites' && req.method === 'POST') {
