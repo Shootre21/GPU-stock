@@ -2,6 +2,16 @@ function esc(s){return String(s??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;
 function badgeFor(status){ if(['authorized','approved','executed','fresh','reported','posted','online'].includes(status)) return 'good'; if(['revoked','denied','failed','stale','cancelled','offline'].includes(status)) return 'bad'; return 'warn'; }
 async function api(path, opts={}){ const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opts}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
 async function safeApi(path){ try { return await api(path); } catch (e) { return { error: String(e) }; } }
+function progressForJob(job){
+  if (job.state === 'queued') return { percent: 10, label: 'Queued in portal' };
+  if (job.state === 'claimed') return { percent: 25, label: 'Claimed by worker' };
+  if (job.state === 'staging') return { percent: 55, label: 'Staging draft in browser' };
+  if (job.state === 'ready') return { percent: 80, label: 'Draft staged and ready' };
+  if (job.state === 'posted') return { percent: 100, label: 'Posted successfully' };
+  if (job.state === 'failed') return { percent: 100, label: 'Failed' };
+  if (job.state === 'cancelled') return { percent: 100, label: 'Cancelled' };
+  return { percent: 5, label: job.state || 'Pending' };
+}
 function progressForExecution(x){
   if (x.state === 'queued') return { percent: 25, label: 'Queued in portal' };
   if (x.state === 'executed') return { percent: 80, label: 'Staged in browser / executed bridge step' };
@@ -12,6 +22,7 @@ function progressForExecution(x){
 async function load(){
   const [sites, audit, requests, executions, bridgeQueue, bridgeContext, jobs, worker] = await Promise.all([api('/api/sites'), api('/api/audit'), api('/api/requests'), api('/api/executions'), safeApi('/api/bridge/queue'), safeApi('/api/bridge/page-context'), safeApi('/api/jobs'), safeApi('/api/worker')]);
   const executionItems = Array.isArray(executions) ? executions : [];
+  const jobItems = Array.isArray(jobs) ? jobs : [];
   const queuedCount = executionItems.filter(x => x.state === 'queued').length;
   const executedCount = executionItems.filter(x => x.state === 'executed').length;
   const failedCount = executionItems.filter(x => x.state === 'failed').length;
@@ -24,30 +35,31 @@ async function load(){
     <div class="metric"><div class="muted small">X-related executions</div><div class="value">${xCount}</div></div>
   `;
 
-  document.getElementById('progressList').innerHTML = executionItems.length ? executionItems.slice(0, 8).map(x => {
-    const p = progressForExecution(x);
+  document.getElementById('progressList').innerHTML = jobItems.length ? jobItems.slice(0, 8).map(job => {
+    const p = progressForJob(job);
     return `
       <div class="progress-wrap">
-        <div class="progress-label"><span><strong>${esc(x.action)}</strong> — ${esc(x.label || x.origin || 'unknown target')}</span><span>${p.percent}%</span></div>
+        <div class="progress-label"><span><strong>${esc(job.kind)}</strong> — ${esc(job.siteLabel || job.siteOrigin || job.platform || 'unknown target')}</span><span>${p.percent}%</span></div>
         <div class="progress-bar"><div class="progress-fill" style="width:${p.percent}%"></div></div>
-        <div class="small muted tight">${esc(p.label)}${x.bridgeResult?.detail ? ` • ${esc(x.bridgeResult.detail)}` : ''}</div>
+        <div class="small muted tight">${esc(p.label)}${job.lastError ? ` • ${esc(job.lastError)}` : ''}</div>
       </div>
     `;
-  }).join('') : '<div class="muted">No execution progress yet.</div>';
+  }).join('') : '<div class="muted">No job progress yet.</div>';
 
   document.getElementById('activityLog').innerHTML = `
     <div class="log-box">
-      <div><strong>Recent activity</strong></div>
-      ${executionItems.slice(0, 6).map(x => `<div class="small tight">${new Date(x.updatedAt || x.createdAt).toLocaleString()} — ${esc(x.action)} — ${esc(x.state)}${x.bridgeResult?.detail ? ` — ${esc(x.bridgeResult.detail)}` : ''}</div>`).join('') || '<div class="small tight muted">No recent execution activity.</div>'}
+      <div><strong>System logs</strong></div>
+      ${jobItems.slice(0, 4).flatMap(job => (job.logs || []).slice(-3).map(log => `<div class="small tight">${new Date(log.at).toLocaleString()} — ${esc(job.platform || 'job')} / ${esc(job.kind)} — ${esc(log.message)}</div>`)).join('') || '<div class="small tight muted">No recent system logs.</div>'}
+      ${worker && worker.note ? `<div class="small tight">${worker.lastSeenAt ? new Date(worker.lastSeenAt).toLocaleString() : ''} — worker — ${esc(worker.note)}</div>` : ''}
     </div>
   `;
 
-  const jobItems = Array.isArray(jobs) ? jobs : [];
   document.getElementById('jobs').innerHTML = jobItems.length ? jobItems.slice(0, 20).map(job => `
     <div class="request">
       <div class="row"><div><strong>${esc(job.kind)}</strong><div class="small muted">${esc(job.siteLabel || job.siteOrigin || job.platform)}</div></div><div><span class="badge ${badgeFor(job.state)}">${esc(job.state)}</span></div></div>
       <div class="small tight">${esc(job.text || '')}</div>
       <div class="small muted tight">Claimed by: ${esc(job.claimedBy || 'nobody')} • Created: ${new Date(job.createdAt).toLocaleString()}</div>
+      ${job.lastError ? `<div class="small tight failure">Failure: ${esc(job.lastError)}</div>` : ''}
       ${(job.logs || []).slice(-3).map(log => `<div class="small muted tight">• ${new Date(log.at).toLocaleString()} — ${esc(log.message)}</div>`).join('')}
       <div class="inline-actions">
         ${job.state==='failed' || job.state==='cancelled' ? `<button class="secondary" onclick="retryJob('${job.id}')">Retry</button>` : ''}
