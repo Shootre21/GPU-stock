@@ -1,10 +1,14 @@
 const PORTAL_BASE = 'http://127.0.0.1:4217';
 const BRIDGE_BASE = 'http://127.0.0.1:4318';
+const WORKER_ID = 'edge-browser-worker';
 
 async function getSiteContext(tab) {
   try {
     const sites = await fetch(`${PORTAL_BASE}/api/sites`).then(r => r.json());
-    return sites.find(site => tab.url && tab.url.startsWith(site.origin.replace(/\/$/, '')));
+    const matches = sites.filter(site => tab.url && tab.url.startsWith(site.origin.replace(/\/$/, '')));
+    if (!matches.length) return null;
+    matches.sort((a, b) => (b.origin || '').length - (a.origin || '').length);
+    return matches[0];
   } catch (error) {
     return { error: String(error) };
   }
@@ -31,10 +35,81 @@ async function collectPageContext(tabId) {
   return context;
 }
 
+async function getActiveXTab() {
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  return tabs.find(tab => /^https:\/\/(x\.com|twitter\.com)\//.test(tab.url || '')) || null;
+}
+
+async function sendWorkerHeartbeat(note = '') {
+  const tab = await getActiveXTab();
+  return postJson(`${PORTAL_BASE}/api/worker/heartbeat`, {
+    workerId: WORKER_ID,
+    platform: 'x',
+    status: tab ? 'online' : 'idle',
+    activeUrl: tab?.url || '',
+    activeTabTitle: tab?.title || '',
+    note
+  });
+}
+
+async function claimNextJob() {
+  return postJson(`${PORTAL_BASE}/api/worker/next`, {
+    workerId: WORKER_ID,
+    platform: 'x'
+  });
+}
+
+async function updateJob(jobId, body) {
+  return postJson(`${PORTAL_BASE}/api/jobs/${jobId}`, body);
+}
+
+async function findExecutionForJob(jobId) {
+  const executions = await getJson(`${PORTAL_BASE}/api/executions`);
+  if (!Array.isArray(executions)) return null;
+  return executions.find(item => item.jobId === jobId) || null;
+}
+
+async function runNextPortalJobCore() {
+  await sendWorkerHeartbeat('Checking for next portal v6 job.');
+  const job = await claimNextJob();
+  if (!job || !job.id) return { ok: false, error: 'No queued portal jobs found.' };
+  const tab = await getActiveXTab();
+  if (!tab?.id) {
+    await updateJob(job.id, { state: 'queued', log: 'No active X tab found; job returned to queue.', lastError: 'No active X tab found.' });
+    return { ok: false, error: 'No active X tab found.' };
+  }
+  await updateJob(job.id, { state: 'claimed', log: 'Worker is staging draft in X composer.' });
+  const result = await chrome.tabs.sendMessage(tab.id, { type: 'bridge:stageDraft', draft: job.text || '' });
+  const execution = await findExecutionForJob(job.id);
+  if (execution?.id) {
+    await postJson(`${BRIDGE_BASE}/execution-result`, {
+      executionId: execution.id,
+      siteId: execution.siteId || null,
+      state: result?.ok ? 'executed' : 'failed',
+      detail: result?.note || result?.error || 'portal v6 job attempted',
+      url: tab.url
+    });
+  }
+  if (result?.ok) {
+    await updateJob(job.id, { state: 'posted', log: 'Draft staged successfully in X composer.' });
+    await sendWorkerHeartbeat('Staged X post from portal v6 job.');
+    return { ok: true, job, result, execution };
+  }
+  await updateJob(job.id, { state: 'failed', log: result?.error || 'Failed to stage X draft.', lastError: result?.error || 'Failed to stage X draft.' });
+  await sendWorkerHeartbeat('Failed to stage X post from portal v6 job.');
+  return { ok: false, job, result, execution };
+}
+
 chrome.alarms.create('poll-x-executions', { periodInMinutes: 0.5 });
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== 'poll-x-executions') return;
   try {
+    await sendWorkerHeartbeat('Polling for queued X work.');
+    const nextJob = await getJson(`${PORTAL_BASE}/api/jobs`);
+    if (Array.isArray(nextJob) && nextJob.some(job => job.state === 'queued' && job.platform === 'x')) {
+      await runNextPortalJobCore();
+      return;
+    }
     const next = await getJson(`${BRIDGE_BASE}/next-x-execution`);
     if (!next || !next.id) return;
     await runNextXExecutionCore();
@@ -139,6 +214,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           url: tab.url
         });
         sendResponse({ ok: true, site, execution: next, result });
+        return;
+      }
+      if (message.type === 'bridge:runNextPortalJob') {
+        sendResponse(await runNextPortalJobCore());
         return;
       }
       sendResponse({ ok: false, error: 'Unknown message type' });
