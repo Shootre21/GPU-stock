@@ -68,7 +68,8 @@ async function load(){
     </div>
   `).join('') : '<div class="muted">No jobs in the v7 engine yet.</div>';
 
-  document.getElementById('workerState').innerHTML = worker && !worker.error ? `
+  const workerConnected = worker && !worker.error && worker.lastSeenAt;
+  document.getElementById('workerState').innerHTML = workerConnected ? `
     <div class="request">
       <div class="row"><div><strong>${esc(worker.workerId || 'local-browser-worker')}</strong><div class="small muted">${esc(worker.platform || 'x')}</div></div><div><span class="badge ${badgeFor(worker.status || 'warn')}">${esc(worker.status || 'unknown')}</span></div></div>
       <div class="small tight">Active URL: <span class="mono">${esc(worker.activeUrl || 'n/a')}</span></div>
@@ -76,7 +77,7 @@ async function load(){
       <div class="small muted tight">Last seen: ${worker.lastSeenAt ? new Date(worker.lastSeenAt).toLocaleString() : 'never'}</div>
       <div class="small muted tight">${esc(worker.note || '')}</div>
     </div>
-  ` : `<div class="muted">${worker?.error ? esc(worker.error) : 'No worker heartbeat yet.'}</div>`;
+  ` : `<div class="request"><div class="row"><div><strong>Worker disconnected</strong><div class="small muted">No heartbeat received yet.</div></div><div><span class="badge bad">offline</span></div></div><div class="small tight failure">The local browser worker is not connected to the portal, so queued jobs cannot move past queued.</div></div>`;
 
   document.getElementById('sites').innerHTML = sites.length ? sites.map(s => `
     <div class="site">
