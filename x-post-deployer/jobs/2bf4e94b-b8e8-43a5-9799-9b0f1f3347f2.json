@@ -1,0 +1,26 @@
+{
+  "id": "2bf4e94b-b8e8-43a5-9799-9b0f1f3347f2",
+  "text": "Software should be simple, and yet here we are.",
+  "state": "ready",
+  "createdAt": "2026-04-20T02:15:10.862Z",
+  "updatedAt": "2026-04-20T02:15:15.978Z",
+  "logs": [
+    {
+      "at": "2026-04-20T02:15:10.869Z",
+      "message": "Job queued."
+    },
+    {
+      "at": "2026-04-20T02:15:15.975Z",
+      "message": "Placeholder browser readiness check passed."
+    },
+    {
+      "at": "2026-04-20T02:15:15.976Z",
+      "message": "Placeholder compose stage reached."
+    },
+    {
+      "at": "2026-04-20T02:15:15.978Z",
+      "message": "Sentence staged in placeholder pipeline; real Chromium executor not wired yet."
+    }
+  ],
+  "failureReason": null
+}

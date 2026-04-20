@@ -1,0 +1,9 @@
+{
+  "accountLabel": "primary-x-account",
+  "xHomeUrl": "https://x.com/home",
+  "browserProfilePath": "./profile",
+  "maxPostLength": 280,
+  "jobPollMs": 5000,
+  "dedupeWindowMs": 300000,
+  "autoPostEnabled": false
+}

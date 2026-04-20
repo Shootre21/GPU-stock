@@ -8,6 +8,8 @@
     "portal": "node scoped-portal/server.js",
     "browser-bridge": "node native-bridge/server.js",
     "local-worker": "node local-worker/server.js",
-    "portal-mcp": "node portal-mcp/server.mjs"
+    "portal-mcp": "node portal-mcp/server.mjs",
+    "x-post-submit": "node x-post-deployer/submit.js",
+    "x-post-worker": "node x-post-deployer/worker.js"
   }
 }
