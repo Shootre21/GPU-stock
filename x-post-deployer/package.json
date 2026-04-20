@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "submit": "node submit.js",
-    "worker": "node worker.js"
+    "worker": "node worker.js",
+    "install:playwright": "bash install-playwright.sh"
   }
 }

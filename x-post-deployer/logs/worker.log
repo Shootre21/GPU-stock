@@ -2,3 +2,6 @@
 [2026-04-20T02:15:15.976Z] 2bf4e94b-b8e8-43a5-9799-9b0f1f3347f2 -> browser_ready: Placeholder browser readiness check passed.
 [2026-04-20T02:15:15.977Z] 2bf4e94b-b8e8-43a5-9799-9b0f1f3347f2 -> staging: Placeholder compose stage reached.
 [2026-04-20T02:15:15.978Z] 2bf4e94b-b8e8-43a5-9799-9b0f1f3347f2 -> ready: Sentence staged in placeholder pipeline; real Chromium executor not wired yet.
+[2026-04-20T03:24:27.478Z] X Post Deployer worker started.
+[2026-04-20T03:24:32.511Z] 168c9ca0-3a2f-4a95-87c4-0bec745b3129 -> browser_ready: Browser binary detected at /mnt/c/Program Files/Google/Chrome/Application/chrome.exe.
+[2026-04-20T03:24:32.517Z] 168c9ca0-3a2f-4a95-87c4-0bec745b3129 -> failed: No automation library installed. Run npm run install:playwright in x-post-deployer.

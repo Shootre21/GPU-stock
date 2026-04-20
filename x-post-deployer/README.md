@@ -9,8 +9,18 @@ This project currently provides:
 - submit path
 - worker state machine skeleton
 - logging
+- browser/automation dependency detection
 
 It does **not** yet perform real browser posting.
+
+## To prepare real browser automation
+
+```bash
+cd x-post-deployer
+npm run install:playwright
+```
+
+This installs Playwright and a Chromium runtime for the deployer.
 
 ## Files
 - `config.json`

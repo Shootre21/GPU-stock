@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { browserDiagnostics, executeSentencePost } from './executor.js';
 
 const root = path.resolve('.');
 const cfg = JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));
@@ -34,9 +35,23 @@ function transition(file, job, state, message, failureReason = null) {
 }
 
 async function processJob(file, job) {
-  transition(file, job, 'browser_ready', 'Placeholder browser readiness check passed.');
-  transition(file, job, 'staging', 'Placeholder compose stage reached.');
-  transition(file, job, 'ready', 'Sentence staged in placeholder pipeline; real Chromium executor not wired yet.');
+  const diag = browserDiagnostics(root);
+  if (!diag.browserBinary) {
+    transition(file, job, 'failed', 'No Chromium/Chrome binary detected.', 'browser_not_available');
+    return;
+  }
+  transition(file, job, 'browser_ready', `Browser binary detected at ${diag.browserBinary}.`);
+  if (!diag.automationLibrary) {
+    transition(file, job, 'failed', 'No automation library installed. Run npm run install:playwright in x-post-deployer.', 'automation_library_missing');
+    return;
+  }
+  transition(file, job, 'staging', `Automation library detected: ${diag.automationLibrary}.`);
+  const result = await executeSentencePost(root, cfg, job);
+  if (result.ok) {
+    transition(file, job, 'ready', result.message || 'Sentence staged successfully.');
+    return;
+  }
+  transition(file, job, result.state || 'failed', result.message || 'Executor failed.', result.reason || 'executor_failed');
 }
 
 async function tick() {
