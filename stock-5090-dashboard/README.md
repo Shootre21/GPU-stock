@@ -9,3 +9,18 @@ Planned v1 features:
 - in-stock transition detection
 - dashboard UI
 - sound hooks for new qualifying stock
+
+## Docker
+
+Build and run directly:
+
+```bash
+docker build -t stock-5090-dashboard .
+docker run --rm -p 4388:4388 -v $(pwd)/data:/app/data stock-5090-dashboard
+```
+
+Or use compose:
+
+```bash
+docker compose up --build
+```

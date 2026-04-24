@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  stock-5090-dashboard:
+    build: .
+    container_name: stock-5090-dashboard
+    ports:
+      - "4388:4388"
+    volumes:
+      - ./data:/app/data
+      - ./sounds:/app/sounds
+    restart: unless-stopped
