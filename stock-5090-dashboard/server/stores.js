@@ -21,7 +21,7 @@ async function fetchBestBuy() {
   const res = await fetch(url, { headers: commonHeaders() });
   if (!res.ok) throw new Error(`bestbuy_http_${res.status}`);
   const text = await res.text();
-  const matches = [...text.matchAll(/"skuItemName":"(.*?)"[\s\S]*?"currentPrice":(\d+(?:\.\d+)?)[\s\S]*?"url":"(\/site\/.*?)"[\s\S]*?"thumbnailImage":"(.*?)"/g)];
+  const matches = [...text.matchAll(/"linkContent":"(.*?)"[\s\S]*?"currentPrice":(\d+(?:\.\d+)?)[\s\S]*?"linkTo":"(\/site\/.*?)"[\s\S]*?"thumbnailImage":"(.*?)"/g)];
   return matches.slice(0, 15).map(match => ({
     title: decodeEscapes(match[1]),
     price: Number(match[2]),
@@ -74,13 +74,16 @@ async function fetchWalmart() {
   const res = await fetch(url, { headers: commonHeaders() });
   if (!res.ok) throw new Error(`walmart_http_${res.status}`);
   const text = await res.text();
-  const matches = [...text.matchAll(/"name":"(.*?)"[\s\S]*?"canonicalUrl":"(\/ip\/.*?)"[\s\S]*?"price":(\d+(?:\.\d+)?)[\s\S]*?"image":"(https:\/\/[^\"]+)"/g)];
-  return matches.slice(0, 15).map(match => ({
-    title: decodeEscapes(match[1]),
-    price: Number(match[3]),
-    url: `https://www.walmart.com${decodeEscapes(match[2])}`,
-    imageUrl: decodeEscapes(match[4]),
-    inStock: !/out of stock|sold out/i.test(match[0])
+  const start = text.indexOf('"itemStacks":');
+  if (start === -1) return [];
+  const slice = text.slice(start, start + 400000);
+  const matches = [...slice.matchAll(/"canonicalUrl":"(\/ip\/.*?)"[\s\S]*?"name":"(.*?)"[\s\S]*?"image":"(https:\/\/[^\"]+)"[\s\S]*?"price":(\d+(?:\.\d+)?)[\s\S]*?"isOutOfStock":(true|false)/g)];
+  return matches.slice(0, 20).map(match => ({
+    title: decodeEscapes(match[2]),
+    price: Number(match[4]),
+    url: `https://www.walmart.com${decodeEscapes(match[1])}`,
+    imageUrl: decodeEscapes(match[3]),
+    inStock: match[5] === 'false'
   }));
 }
 
