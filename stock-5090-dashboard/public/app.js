@@ -52,7 +52,7 @@ async function loadState() {
   storeStatusEl.innerHTML = storeChecks.length ? storeChecks.map(item => `
     <div class="item">
       <div><strong>${esc(item.store)}</strong> — <span class="${item.ok ? 'good' : 'bad'}">${item.ok ? 'ok' : 'error'}</span></div>
-      <div class="muted">checked ${item.checkedAt ? new Date(item.checkedAt).toLocaleTimeString() : 'unknown'} • seen ${esc(item.seen)}</div>
+      <div class="muted">checked ${item.checkedAt ? new Date(item.checkedAt).toLocaleTimeString() : 'unknown'} • seen ${esc(item.seen)} • keyword ${esc(item.matchedKeywords)} • price-ok ${esc(item.matchedPrice)} • qualifying ${esc(item.qualifying)}</div>
       ${item.error ? `<div class="bad">${esc(item.error)}</div>` : ''}
     </div>
   `).join('') : '<div class="muted">No store checks yet.</div>';

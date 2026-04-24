@@ -21,7 +21,9 @@ async function scan() {
   state.scanStartedAt = new Date().toISOString();
   state.storeStatus = [];
   writeJson(STATE_FILE, state);
-  const previousKeys = new Set((state.stores || []).map(listingKey));
+  const previousListings = state.stores || [];
+  const previousKeys = new Set(previousListings.map(listingKey));
+  const previousInStockKeys = new Set(previousListings.filter(item => item.inStock).map(listingKey));
   const nextListings = [];
   const newAlerts = [];
   const storeStatus = [];
@@ -32,19 +34,32 @@ async function scan() {
     if (!fetcher) continue;
     try {
       const results = await fetcher();
-      storeStatus.push({ store: store.id, ok: true, seen: results.length, checkedAt: new Date().toISOString(), error: null });
+      let matchedKeywords = 0;
+      let matchedPrice = 0;
       for (const item of results) {
         const normalized = { ...item, store: store.id };
         if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
+        matchedKeywords += 1;
         if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
+        matchedPrice += 1;
         nextListings.push(normalized);
         const key = listingKey(normalized);
-        if (!previousKeys.has(key) && normalized.inStock) {
+        if (normalized.inStock && !previousInStockKeys.has(key)) {
           newAlerts.push({ at: new Date().toISOString(), type: 'new_in_stock', listing: normalized, sound: 'BRUH_OR_FAHHH' });
         }
       }
+      storeStatus.push({
+        store: store.id,
+        ok: true,
+        seen: results.length,
+        matchedKeywords,
+        matchedPrice,
+        qualifying: nextListings.filter(item => item.store === store.id).length,
+        checkedAt: new Date().toISOString(),
+        error: null
+      });
     } catch (error) {
-      storeStatus.push({ store: store.id, ok: false, seen: 0, checkedAt: new Date().toISOString(), error: String(error) });
+      storeStatus.push({ store: store.id, ok: false, seen: 0, matchedKeywords: 0, matchedPrice: 0, qualifying: 0, checkedAt: new Date().toISOString(), error: String(error) });
       newAlerts.push({ at: new Date().toISOString(), type: 'store_error', store: store.id, error: String(error) });
     }
   }
