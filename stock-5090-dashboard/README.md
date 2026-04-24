@@ -10,6 +10,15 @@ Planned v1 features:
 - dashboard UI
 - sound hooks for new qualifying stock
 
+## Sound files
+
+Place your custom sounds in:
+
+- `sounds/bruh.mp3`
+- `sounds/fahhhh.mp3`
+
+Sound paths are configured in `config.json`.
+
 ## Docker
 
 Build and run directly:

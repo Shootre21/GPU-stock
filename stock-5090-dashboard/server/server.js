@@ -70,7 +70,8 @@ async function scan() {
     lastScanAt: new Date().toISOString(),
     scanStartedAt: state.scanStartedAt,
     isScanning: false,
-    storeStatus
+    storeStatus,
+    soundConfig: (config.sounds || {})
   };
   writeJson(STATE_FILE, nextState);
   return nextState;

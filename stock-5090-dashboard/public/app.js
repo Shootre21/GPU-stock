@@ -7,6 +7,7 @@ const bruhSound = document.getElementById('bruhSound');
 const fahhhSound = document.getElementById('fahhhSound');
 
 let lastAlertCount = 0;
+let soundConfig = { bruh: '/sounds/bruh.mp3', fahhhh: '/sounds/fahhhh.mp3' };
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
@@ -22,6 +23,9 @@ function chooseSound(listing) {
 async function loadState() {
   const res = await fetch('/api/state');
   const state = await res.json();
+  if (state.soundConfig) soundConfig = state.soundConfig;
+  bruhSound.src = soundConfig.bruh;
+  fahhhSound.src = soundConfig.fahhhh;
 
   statusEl.innerHTML = `
     <div class="item"><strong>Last scan:</strong> <span class="muted">${state.lastScanAt ? new Date(state.lastScanAt).toLocaleString() : 'never'}</span></div>

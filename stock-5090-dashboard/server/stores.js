@@ -6,6 +6,16 @@ function commonHeaders() {
   };
 }
 
+function decodeEscapes(value = '') {
+  return String(value)
+    .replace(/\\u002F/g, '/')
+    .replace(/\\\//g, '/')
+    .replace(/\\"/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"');
+}
+
 async function fetchBestBuy() {
   const url = 'https://www.bestbuy.com/site/searchpage.jsp?st=rtx+5090';
   const res = await fetch(url, { headers: commonHeaders() });
@@ -13,10 +23,10 @@ async function fetchBestBuy() {
   const text = await res.text();
   const matches = [...text.matchAll(/"skuItemName":"(.*?)".*?"currentPrice":(\d+(?:\.\d+)?).*?"url":"(\/site\/.*?)"/g)];
   return matches.slice(0, 15).map(match => ({
-    title: match[1].replace(/\\u002F/g, '/').replace(/\\"/g, '"'),
+    title: decodeEscapes(match[1]),
     price: Number(match[2]),
-    url: `https://www.bestbuy.com${match[3].replace(/\\u002F/g, '/')}`,
-    inStock: /add to cart|pickup today|shipping/i.test(text)
+    url: `https://www.bestbuy.com${decodeEscapes(match[3])}`,
+    inStock: /add to cart|pickup today|shipping|sold out/i.test(text) ? !/sold out/i.test(match[0]) : false
   }));
 }
 
@@ -27,7 +37,7 @@ async function fetchNewegg() {
   const text = await res.text();
   const matches = [...text.matchAll(/<a[^>]+class="item-title"[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>[\s\S]*?<li class="price-current">[\s\S]*?<strong>(\d+)<\/strong><sup>(\.\d+)<\/sup>/g)];
   return matches.slice(0, 15).map(match => ({
-    title: match[2].replace(/<[^>]+>/g, '').trim(),
+    title: decodeEscapes(match[2].replace(/<[^>]+>/g, '').trim()),
     price: Number(`${match[3]}${match[4]}`),
     url: match[1],
     inStock: !/out of stock/i.test(match[0])
@@ -41,9 +51,9 @@ async function fetchBHPhoto() {
   const text = await res.text();
   const matches = [...text.matchAll(/"name":"(.*?)"[\s\S]*?"url":"(https:\/\/www\.bhphotovideo\.com[^"]+)"[\s\S]*?"price":"(\d+(?:\.\d+)?)"/g)];
   return matches.slice(0, 15).map(match => ({
-    title: match[1],
+    title: decodeEscapes(match[1]),
     price: Number(match[3]),
-    url: match[2].replace(/\\\//g, '/'),
+    url: decodeEscapes(match[2]),
     inStock: !/temporarily unavailable|more on the way/i.test(text)
   }));
 }

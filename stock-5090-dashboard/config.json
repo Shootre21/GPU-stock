@@ -2,6 +2,10 @@
   "minPrice": 1500,
   "maxPrice": 2500,
   "pollIntervalMs": 15000,
+  "sounds": {
+    "bruh": "/sounds/bruh.mp3",
+    "fahhhh": "/sounds/fahhhh.mp3"
+  },
   "productKeywords": ["5090", "rtx 5090", "geforce rtx 5090"],
   "stores": [
     { "id": "bestbuy", "enabled": true },
