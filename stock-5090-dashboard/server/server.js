@@ -13,6 +13,9 @@ const PORT = process.env.STOCK_DASHBOARD_PORT || 4388;
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
 function writeJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
 function send(res, code, body, type='application/json') { res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' }); res.end(type === 'application/json' ? JSON.stringify(body, null, 2) : body); }
+function sameStoreError(a, b) {
+  return a && b && a.type === 'store_error' && b.type === 'store_error' && a.store === b.store && a.error === b.error;
+}
 
 async function scan() {
   const config = readJson(CONFIG_FILE, {});
@@ -27,6 +30,7 @@ async function scan() {
   const nextListings = [];
   const newAlerts = [];
   const storeStatus = [];
+  const existingAlerts = state.alerts || [];
 
   for (const store of config.stores || []) {
     if (!store.enabled) continue;
@@ -59,8 +63,13 @@ async function scan() {
         error: null
       });
     } catch (error) {
-      storeStatus.push({ store: store.id, ok: false, seen: 0, matchedKeywords: 0, matchedPrice: 0, qualifying: 0, checkedAt: new Date().toISOString(), error: String(error) });
-      newAlerts.push({ at: new Date().toISOString(), type: 'store_error', store: store.id, error: String(error) });
+      const errorText = String(error);
+      storeStatus.push({ store: store.id, ok: false, seen: 0, matchedKeywords: 0, matchedPrice: 0, qualifying: 0, checkedAt: new Date().toISOString(), error: errorText });
+      const latestExisting = [...existingAlerts].reverse().find(alert => alert.type === 'store_error' && alert.store === store.id);
+      const nextError = { at: new Date().toISOString(), type: 'store_error', store: store.id, error: errorText };
+      if (!sameStoreError(latestExisting, nextError)) {
+        newAlerts.push(nextError);
+      }
     }
   }
 
