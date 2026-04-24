@@ -10,6 +10,7 @@
     "local-worker": "node local-worker/server.js",
     "portal-mcp": "node portal-mcp/server.mjs",
     "x-post-submit": "node x-post-deployer/submit.js",
-    "x-post-worker": "node x-post-deployer/worker.js"
+    "x-post-worker": "node x-post-deployer/worker.js",
+    "stock-5090": "node stock-5090-dashboard/server/server.js"
   }
 }

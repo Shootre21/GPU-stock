@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>5090 Stock Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <div>
+        <h1>RTX 5090 Stock Dashboard</h1>
+        <p>Deterministic watcher. No AI. Just signals, filters, and loud sounds when it matters.</p>
+      </div>
+      <button id="scanBtn">Scan now</button>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Status</h2>
+        <div id="status"></div>
+      </div>
+      <div class="card">
+        <h2>Recent alerts</h2>
+        <div id="alerts"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Current qualifying listings</h2>
+      <div id="listings"></div>
+    </section>
+
+    <audio id="bruhSound" preload="auto"></audio>
+    <audio id="fahhhSound" preload="auto"></audio>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
