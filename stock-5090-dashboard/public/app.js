@@ -53,13 +53,14 @@ async function loadState() {
         <div><a class="link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Open listing</a></div>
       </div>
     </div>
-  `).join('') : '<div class="muted">No qualifying listings yet.</div>';
+  `).join('') : '<div class="muted">No qualifying listings yet. That can mean no 5090s matched, prices fell outside range, or store parsers need more tuning.</div>';
 
   const storeChecks = state.storeStatus || [];
   storeStatusEl.innerHTML = storeChecks.length ? storeChecks.map(item => `
     <div class="item">
       <div><strong>${esc(item.store)}</strong> — <span class="${item.ok ? 'good' : 'bad'}">${item.ok ? 'ok' : 'error'}</span></div>
       <div class="muted">checked ${item.checkedAt ? new Date(item.checkedAt).toLocaleTimeString() : 'unknown'} • seen ${esc(item.seen)} • keyword ${esc(item.matchedKeywords)} • price-ok ${esc(item.matchedPrice)} • qualifying ${esc(item.qualifying)}</div>
+      <div class="muted">diagnosis: ${esc(item.diagnosis || 'unknown')}</div>
       ${item.error ? `<div class="bad">${esc(item.error)}</div>` : ''}
     </div>
   `).join('') : '<div class="muted">No store checks yet.</div>';

@@ -21,13 +21,13 @@ async function fetchBestBuy() {
   const res = await fetch(url, { headers: commonHeaders() });
   if (!res.ok) throw new Error(`bestbuy_http_${res.status}`);
   const text = await res.text();
-  const matches = [...text.matchAll(/"skuItemName":"(.*?)".*?"currentPrice":(\d+(?:\.\d+)?).*?"url":"(\/site\/.*?)".*?"thumbnailImage":"(.*?)"/g)];
+  const matches = [...text.matchAll(/"skuItemName":"(.*?)"[\s\S]*?"currentPrice":(\d+(?:\.\d+)?)[\s\S]*?"url":"(\/site\/.*?)"[\s\S]*?"thumbnailImage":"(.*?)"/g)];
   return matches.slice(0, 15).map(match => ({
     title: decodeEscapes(match[1]),
     price: Number(match[2]),
     url: `https://www.bestbuy.com${decodeEscapes(match[3])}`,
     imageUrl: decodeEscapes(match[4]),
-    inStock: /add to cart|pickup today|shipping|sold out/i.test(text) ? !/sold out/i.test(match[0]) : false
+    inStock: !/sold out|coming soon|unavailable/i.test(match[0])
   }));
 }
 

@@ -16,6 +16,19 @@ function send(res, code, body, type='application/json') { res.writeHead(code, { 
 function sameStoreError(a, b) {
   return a && b && a.type === 'store_error' && b.type === 'store_error' && a.store === b.store && a.error === b.error;
 }
+function pruneAlerts(alerts = []) {
+  const out = [];
+  const recentStoreError = new Map();
+  for (const alert of alerts) {
+    if (alert.type === 'store_error') {
+      const key = `${alert.store}:${alert.error}`;
+      if (recentStoreError.has(key)) continue;
+      recentStoreError.set(key, true);
+    }
+    out.push(alert);
+  }
+  return out.slice(-80);
+}
 
 async function scan() {
   const config = readJson(CONFIG_FILE, {});
@@ -52,6 +65,7 @@ async function scan() {
           newAlerts.push({ at: new Date().toISOString(), type: 'new_in_stock', listing: normalized, sound: 'BRUH_OR_FAHHH' });
         }
       }
+      const diagnosis = results.length === 0 ? 'parser_no_match_or_no_results' : matchedKeywords === 0 ? 'no_keyword_match' : matchedPrice === 0 ? 'no_price_match' : nextListings.filter(item => item.store === store.id).length === 0 ? 'no_qualifying_items' : 'qualifying_items_found';
       storeStatus.push({
         store: store.id,
         ok: true,
@@ -59,12 +73,13 @@ async function scan() {
         matchedKeywords,
         matchedPrice,
         qualifying: nextListings.filter(item => item.store === store.id).length,
+        diagnosis,
         checkedAt: new Date().toISOString(),
         error: null
       });
     } catch (error) {
       const errorText = String(error);
-      storeStatus.push({ store: store.id, ok: false, seen: 0, matchedKeywords: 0, matchedPrice: 0, qualifying: 0, checkedAt: new Date().toISOString(), error: errorText });
+      storeStatus.push({ store: store.id, ok: false, seen: 0, matchedKeywords: 0, matchedPrice: 0, qualifying: 0, diagnosis: 'store_error', checkedAt: new Date().toISOString(), error: errorText });
       const latestExisting = [...existingAlerts].reverse().find(alert => alert.type === 'store_error' && alert.store === store.id);
       const nextError = { at: new Date().toISOString(), type: 'store_error', store: store.id, error: errorText };
       if (!sameStoreError(latestExisting, nextError)) {
@@ -75,7 +90,7 @@ async function scan() {
 
   const nextState = {
     stores: nextListings,
-    alerts: [...(state.alerts || []), ...newAlerts].slice(-200),
+    alerts: pruneAlerts([...(state.alerts || []), ...newAlerts]),
     lastScanAt: new Date().toISOString(),
     scanStartedAt: state.scanStartedAt,
     isScanning: false,
