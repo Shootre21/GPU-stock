@@ -1,8 +1,30 @@
 {
   "stores": [],
   "alerts": [],
-  "lastScanAt": "2026-04-24T06:39:25.930Z",
-  "scanStartedAt": "2026-04-24T06:39:38.529Z",
-  "isScanning": true,
-  "storeStatus": []
+  "lastScanAt": "2026-04-24T06:41:41.129Z",
+  "scanStartedAt": "2026-04-24T06:41:38.507Z",
+  "isScanning": false,
+  "storeStatus": [
+    {
+      "store": "bestbuy",
+      "ok": true,
+      "seen": 0,
+      "checkedAt": "2026-04-24T06:41:40.845Z",
+      "error": null
+    },
+    {
+      "store": "newegg",
+      "ok": true,
+      "seen": 0,
+      "checkedAt": "2026-04-24T06:41:41.012Z",
+      "error": null
+    },
+    {
+      "store": "bhphoto",
+      "ok": true,
+      "seen": 0,
+      "checkedAt": "2026-04-24T06:41:41.129Z",
+      "error": null
+    }
+  ]
 }

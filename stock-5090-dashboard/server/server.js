@@ -75,6 +75,15 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/app.js') {
     return send(res, 200, fs.readFileSync(path.join(PUBLIC_DIR, 'app.js'), 'utf8'), 'application/javascript');
   }
+  if (req.method === 'GET' && url.pathname.startsWith('/sounds/')) {
+    const file = path.join(ROOT, url.pathname.replace(/^\//, ''));
+    if (fs.existsSync(file)) {
+      const ext = path.extname(file).toLowerCase();
+      const type = ext === '.mp3' ? 'audio/mpeg' : 'application/octet-stream';
+      return send(res, 200, fs.readFileSync(file), type);
+    }
+    return send(res, 404, { error: 'Sound not found' });
+  }
   return send(res, 404, { error: 'Not found' });
 });
 
