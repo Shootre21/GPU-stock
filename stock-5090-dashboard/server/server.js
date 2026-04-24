@@ -17,9 +17,14 @@ function send(res, code, body, type='application/json') { res.writeHead(code, { 
 async function scan() {
   const config = readJson(CONFIG_FILE, {});
   const state = readJson(STATE_FILE, { stores: [], alerts: [], lastScanAt: null });
+  state.isScanning = true;
+  state.scanStartedAt = new Date().toISOString();
+  state.storeStatus = [];
+  writeJson(STATE_FILE, state);
   const previousKeys = new Set((state.stores || []).map(listingKey));
   const nextListings = [];
   const newAlerts = [];
+  const storeStatus = [];
 
   for (const store of config.stores || []) {
     if (!store.enabled) continue;
@@ -27,6 +32,7 @@ async function scan() {
     if (!fetcher) continue;
     try {
       const results = await fetcher();
+      storeStatus.push({ store: store.id, ok: true, seen: results.length, checkedAt: new Date().toISOString(), error: null });
       for (const item of results) {
         const normalized = { ...item, store: store.id };
         if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
@@ -38,6 +44,7 @@ async function scan() {
         }
       }
     } catch (error) {
+      storeStatus.push({ store: store.id, ok: false, seen: 0, checkedAt: new Date().toISOString(), error: String(error) });
       newAlerts.push({ at: new Date().toISOString(), type: 'store_error', store: store.id, error: String(error) });
     }
   }
@@ -45,7 +52,10 @@ async function scan() {
   const nextState = {
     stores: nextListings,
     alerts: [...(state.alerts || []), ...newAlerts].slice(-200),
-    lastScanAt: new Date().toISOString()
+    lastScanAt: new Date().toISOString(),
+    scanStartedAt: state.scanStartedAt,
+    isScanning: false,
+    storeStatus
   };
   writeJson(STATE_FILE, nextState);
   return nextState;

@@ -1,6 +1,7 @@
 const statusEl = document.getElementById('status');
 const alertsEl = document.getElementById('alerts');
 const listingsEl = document.getElementById('listings');
+const storeStatusEl = document.getElementById('storeStatus');
 const scanBtn = document.getElementById('scanBtn');
 const bruhSound = document.getElementById('bruhSound');
 const fahhhSound = document.getElementById('fahhhSound');
@@ -24,6 +25,7 @@ async function loadState() {
 
   statusEl.innerHTML = `
     <div class="item"><strong>Last scan:</strong> <span class="muted">${state.lastScanAt ? new Date(state.lastScanAt).toLocaleString() : 'never'}</span></div>
+    <div class="item"><strong>Scan state:</strong> <span class="${state.isScanning ? 'warn' : 'good'}">${state.isScanning ? 'scanning…' : 'idle'}</span></div>
     <div class="item"><strong>Qualifying listings:</strong> <span class="good">${(state.stores || []).length}</span></div>
     <div class="item"><strong>Total alerts kept:</strong> <span class="warn">${(state.alerts || []).length}</span></div>
   `;
@@ -46,6 +48,15 @@ async function loadState() {
     </div>
   `).join('') : '<div class="muted">No qualifying listings yet.</div>';
 
+  const storeChecks = state.storeStatus || [];
+  storeStatusEl.innerHTML = storeChecks.length ? storeChecks.map(item => `
+    <div class="item">
+      <div><strong>${esc(item.store)}</strong> — <span class="${item.ok ? 'good' : 'bad'}">${item.ok ? 'ok' : 'error'}</span></div>
+      <div class="muted">checked ${item.checkedAt ? new Date(item.checkedAt).toLocaleTimeString() : 'unknown'} • seen ${esc(item.seen)}</div>
+      ${item.error ? `<div class="bad">${esc(item.error)}</div>` : ''}
+    </div>
+  `).join('') : '<div class="muted">No store checks yet.</div>';
+
   if (alerts.length > lastAlertCount) {
     const newest = alerts[alerts.length - 1];
     if (newest.type === 'new_in_stock') {
@@ -61,13 +72,15 @@ async function loadState() {
 
 scanBtn.addEventListener('click', async () => {
   scanBtn.disabled = true;
+  scanBtn.textContent = 'Scanning…';
   try {
     await fetch('/api/scan', { method: 'POST' });
     await loadState();
   } finally {
     scanBtn.disabled = false;
+    scanBtn.textContent = 'Scan now';
   }
 });
 
-setInterval(loadState, 15000);
+setInterval(loadState, 5000);
 loadState();

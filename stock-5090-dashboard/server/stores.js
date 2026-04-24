@@ -1,11 +1,15 @@
+function commonHeaders() {
+  return {
+    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari',
+    'accept-language': 'en-US,en;q=0.9',
+    'cache-control': 'no-cache'
+  };
+}
+
 async function fetchBestBuy() {
   const url = 'https://www.bestbuy.com/site/searchpage.jsp?st=rtx+5090';
-  const res = await fetch(url, {
-    headers: {
-      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari',
-      'accept-language': 'en-US,en;q=0.9'
-    }
-  });
+  const res = await fetch(url, { headers: commonHeaders() });
+  if (!res.ok) throw new Error(`bestbuy_http_${res.status}`);
   const text = await res.text();
   const matches = [...text.matchAll(/"skuItemName":"(.*?)".*?"currentPrice":(\d+(?:\.\d+)?).*?"url":"(\/site\/.*?)"/g)];
   return matches.slice(0, 15).map(match => ({
@@ -18,12 +22,8 @@ async function fetchBestBuy() {
 
 async function fetchNewegg() {
   const url = 'https://www.newegg.com/p/pl?d=rtx+5090';
-  const res = await fetch(url, {
-    headers: {
-      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari',
-      'accept-language': 'en-US,en;q=0.9'
-    }
-  });
+  const res = await fetch(url, { headers: commonHeaders() });
+  if (!res.ok) throw new Error(`newegg_http_${res.status}`);
   const text = await res.text();
   const matches = [...text.matchAll(/<a[^>]+class="item-title"[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>[\s\S]*?<li class="price-current">[\s\S]*?<strong>(\d+)<\/strong><sup>(\.\d+)<\/sup>/g)];
   return matches.slice(0, 15).map(match => ({
@@ -36,12 +36,8 @@ async function fetchNewegg() {
 
 async function fetchBHPhoto() {
   const url = 'https://www.bhphotovideo.com/c/search?q=rtx%205090&sts=ma';
-  const res = await fetch(url, {
-    headers: {
-      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari',
-      'accept-language': 'en-US,en;q=0.9'
-    }
-  });
+  const res = await fetch(url, { headers: commonHeaders() });
+  if (!res.ok) throw new Error(`bhphoto_http_${res.status}`);
   const text = await res.text();
   const matches = [...text.matchAll(/"name":"(.*?)"[\s\S]*?"url":"(https:\/\/www\.bhphotovideo\.com[^"]+)"[\s\S]*?"price":"(\d+(?:\.\d+)?)"/g)];
   return matches.slice(0, 15).map(match => ({
@@ -68,4 +64,4 @@ const storeFetchers = {
   amazon: fetchAmazon,
 };
 
-module.exports = { storeFetchers };
+module.exports = { storeFetchers, commonHeaders };

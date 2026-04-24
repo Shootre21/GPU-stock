@@ -1,5 +1,8 @@
 {
   "stores": [],
   "alerts": [],
-  "lastScanAt": "2026-04-24T06:03:30.458Z"
+  "lastScanAt": "2026-04-24T06:16:10.781Z",
+  "scanStartedAt": "2026-04-24T06:16:23.842Z",
+  "isScanning": true,
+  "storeStatus": []
 }
