@@ -69,12 +69,28 @@ async function fetchAmazon() {
   return [];
 }
 
+async function fetchWalmart() {
+  const url = 'https://www.walmart.com/search?q=rtx+5090';
+  const res = await fetch(url, { headers: commonHeaders() });
+  if (!res.ok) throw new Error(`walmart_http_${res.status}`);
+  const text = await res.text();
+  const matches = [...text.matchAll(/"name":"(.*?)"[\s\S]*?"canonicalUrl":"(\/ip\/.*?)"[\s\S]*?"price":(\d+(?:\.\d+)?)[\s\S]*?"image":"(https:\/\/[^\"]+)"/g)];
+  return matches.slice(0, 15).map(match => ({
+    title: decodeEscapes(match[1]),
+    price: Number(match[3]),
+    url: `https://www.walmart.com${decodeEscapes(match[2])}`,
+    imageUrl: decodeEscapes(match[4]),
+    inStock: !/out of stock|sold out/i.test(match[0])
+  }));
+}
+
 const storeFetchers = {
   bestbuy: fetchBestBuy,
   newegg: fetchNewegg,
   bhphoto: fetchBHPhoto,
   microcenter: fetchMicroCenter,
   amazon: fetchAmazon,
+  walmart: fetchWalmart,
 };
 
 module.exports = { storeFetchers, commonHeaders };

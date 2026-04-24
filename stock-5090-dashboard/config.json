@@ -1,6 +1,6 @@
 {
   "minPrice": 1500,
-  "maxPrice": 2500,
+  "maxPrice": 4000,
   "pollIntervalMs": 15000,
   "sounds": {
     "bruh": "/sounds/bruh.mp3",
@@ -10,8 +10,9 @@
   "stores": [
     { "id": "bestbuy", "enabled": true },
     { "id": "newegg", "enabled": true },
-    { "id": "bhphoto", "enabled": true },
+    { "id": "bhphoto", "enabled": false },
     { "id": "microcenter", "enabled": false },
-    { "id": "amazon", "enabled": false }
+    { "id": "amazon", "enabled": false },
+    { "id": "walmart", "enabled": true }
   ]
 }
