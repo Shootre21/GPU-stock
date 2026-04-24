@@ -21,11 +21,12 @@ async function fetchBestBuy() {
   const res = await fetch(url, { headers: commonHeaders() });
   if (!res.ok) throw new Error(`bestbuy_http_${res.status}`);
   const text = await res.text();
-  const matches = [...text.matchAll(/"skuItemName":"(.*?)".*?"currentPrice":(\d+(?:\.\d+)?).*?"url":"(\/site\/.*?)"/g)];
+  const matches = [...text.matchAll(/"skuItemName":"(.*?)".*?"currentPrice":(\d+(?:\.\d+)?).*?"url":"(\/site\/.*?)".*?"thumbnailImage":"(.*?)"/g)];
   return matches.slice(0, 15).map(match => ({
     title: decodeEscapes(match[1]),
     price: Number(match[2]),
     url: `https://www.bestbuy.com${decodeEscapes(match[3])}`,
+    imageUrl: decodeEscapes(match[4]),
     inStock: /add to cart|pickup today|shipping|sold out/i.test(text) ? !/sold out/i.test(match[0]) : false
   }));
 }
@@ -35,11 +36,12 @@ async function fetchNewegg() {
   const res = await fetch(url, { headers: commonHeaders() });
   if (!res.ok) throw new Error(`newegg_http_${res.status}`);
   const text = await res.text();
-  const matches = [...text.matchAll(/<a[^>]+class="item-title"[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>[\s\S]*?<li class="price-current">[\s\S]*?<strong>(\d+)<\/strong><sup>(\.\d+)<\/sup>/g)];
+  const matches = [...text.matchAll(/<a[^>]+class="item-title"[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>[\s\S]*?<img[^>]+src="([^"]+)"[\s\S]*?<li class="price-current">[\s\S]*?<strong>(\d+)<\/strong><sup>(\.\d+)<\/sup>/g)];
   return matches.slice(0, 15).map(match => ({
     title: decodeEscapes(match[2].replace(/<[^>]+>/g, '').trim()),
-    price: Number(`${match[3]}${match[4]}`),
+    price: Number(`${match[4]}${match[5]}`),
     url: match[1],
+    imageUrl: match[3],
     inStock: !/out of stock/i.test(match[0])
   }));
 }
@@ -49,11 +51,12 @@ async function fetchBHPhoto() {
   const res = await fetch(url, { headers: commonHeaders() });
   if (!res.ok) throw new Error(`bhphoto_http_${res.status}`);
   const text = await res.text();
-  const matches = [...text.matchAll(/"name":"(.*?)"[\s\S]*?"url":"(https:\/\/www\.bhphotovideo\.com[^"]+)"[\s\S]*?"price":"(\d+(?:\.\d+)?)"/g)];
+  const matches = [...text.matchAll(/"name":"(.*?)"[\s\S]*?"url":"(https:\/\/www\.bhphotovideo\.com[^"]+)"[\s\S]*?"image":"(https:\/\/[^\"]+)"[\s\S]*?"price":"(\d+(?:\.\d+)?)"/g)];
   return matches.slice(0, 15).map(match => ({
     title: decodeEscapes(match[1]),
-    price: Number(match[3]),
+    price: Number(match[4]),
     url: decodeEscapes(match[2]),
+    imageUrl: decodeEscapes(match[3]),
     inStock: !/temporarily unavailable|more on the way/i.test(text)
   }));
 }

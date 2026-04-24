@@ -7,9 +7,13 @@ button { background: #60a5fa; color: #0b1020; border: 0; border-radius: 10px; pa
 .card { background: #131a31; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px; }
 .item { border-bottom: 1px solid rgba(255,255,255,.08); padding: 10px 0; }
 .item:last-child { border-bottom: none; }
+.product-card { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: start; }
+.product-media img { width: 110px; height: 110px; object-fit: contain; background: #fff; border-radius: 10px; }
+.image-placeholder { width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,.15); border-radius: 10px; }
+.product-body { min-width: 0; }
 .muted { color: #9fb1d1; }
 .good { color: #86efac; }
 .warn { color: #fcd34d; }
 .bad { color: #fca5a5; }
 .link { color: #93c5fd; text-decoration: none; }
-@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .hero { flex-direction: column; align-items: flex-start; } }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .hero { flex-direction: column; align-items: flex-start; } .product-card { grid-template-columns: 1fr; } }

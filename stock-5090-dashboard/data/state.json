@@ -2,306 +2,6 @@
   "stores": [],
   "alerts": [
     {
-      "at": "2026-04-24T14:44:46.546Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:45:02.359Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:45:16.846Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:45:31.358Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:45:46.530Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:46:01.830Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:46:17.478Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:46:31.768Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:46:46.578Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:47:01.562Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:47:16.496Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:47:31.730Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:47:46.624Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:48:01.768Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:48:16.912Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:48:31.562Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:48:46.732Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:49:01.595Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:49:16.599Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:49:31.358Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:49:46.561Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:50:01.472Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:50:16.479Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:50:31.978Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:50:46.517Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:51:02.078Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:51:16.592Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:51:31.730Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:51:46.276Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:52:01.694Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:52:16.673Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:52:32.644Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:52:46.580Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:53:01.368Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:53:17.410Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:53:32.091Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:53:46.576Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:54:01.468Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:54:16.381Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:54:31.638Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:54:46.437Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:55:01.509Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:55:16.613Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:55:31.717Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:55:46.518Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:56:01.355Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:56:16.585Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:56:31.544Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:56:46.318Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
-      "at": "2026-04-24T14:57:01.458Z",
-      "type": "store_error",
-      "store": "bhphoto",
-      "error": "Error: bhphoto_http_403"
-    },
-    {
       "at": "2026-04-24T14:57:16.350Z",
       "type": "store_error",
       "store": "bhphoto",
@@ -1200,32 +900,345 @@
       "type": "store_error",
       "store": "bhphoto",
       "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:35:00.719Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:35:15.845Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:35:31.555Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:35:46.208Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:36:01.112Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:36:16.827Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:36:30.812Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:36:44.749Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:36:58.918Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:37:14.458Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:37:29.060Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:37:44.214Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:37:59.425Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:38:14.031Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:38:29.009Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:38:44.135Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:38:59.239Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:39:14.280Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:39:29.275Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:39:43.933Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:39:59.213Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:40:13.982Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:40:29.186Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:40:44.524Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:40:59.000Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:41:14.336Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:41:29.042Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:41:43.901Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:41:59.040Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:42:14.035Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:42:29.211Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:42:44.047Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:42:58.979Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:43:13.838Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:43:29.057Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:43:44.153Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:43:58.902Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:44:13.880Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:44:28.914Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:44:44.024Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:44:58.929Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:45:13.976Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:45:29.340Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:45:44.940Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:45:59.089Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:46:14.209Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:46:28.968Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:46:44.059Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:46:58.989Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
+    },
+    {
+      "at": "2026-04-24T15:47:13.829Z",
+      "type": "store_error",
+      "store": "bhphoto",
+      "error": "Error: bhphoto_http_403"
     }
   ],
-  "lastScanAt": "2026-04-24T15:34:49.661Z",
-  "scanStartedAt": "2026-04-24T15:34:47.689Z",
+  "lastScanAt": "2026-04-24T15:47:39.736Z",
+  "scanStartedAt": "2026-04-24T15:47:37.708Z",
   "isScanning": false,
   "storeStatus": [
     {
       "store": "bestbuy",
       "ok": true,
       "seen": 0,
-      "checkedAt": "2026-04-24T15:34:49.358Z",
+      "matchedKeywords": 0,
+      "matchedPrice": 0,
+      "qualifying": 0,
+      "checkedAt": "2026-04-24T15:47:39.385Z",
       "error": null
     },
     {
       "store": "newegg",
       "ok": true,
       "seen": 0,
-      "checkedAt": "2026-04-24T15:34:49.534Z",
+      "matchedKeywords": 0,
+      "matchedPrice": 0,
+      "qualifying": 0,
+      "checkedAt": "2026-04-24T15:47:39.645Z",
       "error": null
     },
     {
       "store": "bhphoto",
-      "ok": true,
+      "ok": false,
       "seen": 0,
-      "checkedAt": "2026-04-24T15:34:49.660Z",
-      "error": null
+      "matchedKeywords": 0,
+      "matchedPrice": 0,
+      "qualifying": 0,
+      "checkedAt": "2026-04-24T15:47:39.736Z",
+      "error": "Error: bhphoto_http_403"
     }
-  ]
+  ],
+  "soundConfig": {
+    "bruh": "/sounds/bruh.mp3",
+    "fahhhh": "/sounds/fahhhh.mp3"
+  }
 }

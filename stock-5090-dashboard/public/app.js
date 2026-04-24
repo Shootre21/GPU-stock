@@ -45,10 +45,13 @@ async function loadState() {
 
   const listings = state.stores || [];
   listingsEl.innerHTML = listings.length ? listings.map(item => `
-    <div class="item">
-      <div><strong>${esc(item.title)}</strong></div>
-      <div class="muted">${esc(item.store)} — $${esc(item.price)} — ${item.inStock ? '<span class="good">in stock</span>' : '<span class="bad">out of stock</span>'}</div>
-      <div><a class="link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Open listing</a></div>
+    <div class="item product-card">
+      <div class="product-media">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.title)}" />` : '<div class="image-placeholder muted">No image</div>'}</div>
+      <div class="product-body">
+        <div><strong>${esc(item.title)}</strong></div>
+        <div class="muted">${esc(item.store)} — $${esc(item.price)} — ${item.inStock ? '<span class="good">in stock</span>' : '<span class="bad">out of stock</span>'}</div>
+        <div><a class="link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Open listing</a></div>
+      </div>
     </div>
   `).join('') : '<div class="muted">No qualifying listings yet.</div>';
 
