@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { addTemplate } from '@/app/actions';
 import { loadCRMData } from '@/lib/crm-data';
 
 export default async function TemplatesPage() {
@@ -14,6 +15,29 @@ export default async function TemplatesPage() {
           </div>
           <Link href="/" className="text-sm text-blue-600 hover:underline">Back to dashboard</Link>
         </div>
+
+        <section className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold">Add template</h2>
+          <form action={addTemplate} className="mt-4 grid gap-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              <input name="name" placeholder="Template name" className="rounded-xl border border-black/10 px-4 py-3" required />
+              <select name="niche" className="rounded-xl border border-black/10 px-4 py-3" defaultValue="general">
+                <option value="general">General</option>
+                <option value="accounting">Accounting</option>
+                <option value="insurance">Insurance</option>
+                <option value="dental">Dental</option>
+                <option value="law">Law</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <input name="subject" placeholder="Subject" className="rounded-xl border border-black/10 px-4 py-3" required />
+            <textarea name="body" placeholder="Email body with placeholders like {{contactName}} and {{companyName}}" className="min-h-48 rounded-xl border border-black/10 px-4 py-3" required />
+            <label className="flex items-center gap-2 text-sm text-black/70">
+              <input type="checkbox" name="active" defaultChecked /> Active
+            </label>
+            <button className="rounded-xl bg-black px-4 py-3 text-white">Save template</button>
+          </form>
+        </section>
 
         <div className="grid gap-4">
           {data.templates.map((template) => (

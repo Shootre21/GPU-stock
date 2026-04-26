@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { addLead, sendTemplateEmail } from '@/app/actions';
 import { loadCRMData } from '@/lib/crm-data';
 
 export default async function LeadsPage() {
@@ -16,43 +17,79 @@ export default async function LeadsPage() {
           <Link href="/" className="text-sm text-blue-600 hover:underline">Back to dashboard</Link>
         </div>
 
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Next step: add real contact leads with names and emails before any sending automation goes live.
-        </div>
+        <section className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold">Add lead</h2>
+          <form action={addLead} className="mt-4 grid gap-3 md:grid-cols-2">
+            <select name="companyId" className="rounded-xl border border-black/10 px-4 py-3" required defaultValue="">
+              <option value="" disabled>Select company</option>
+              {data.companies.map((company) => (
+                <option key={company.id} value={company.id}>{company.name}</option>
+              ))}
+            </select>
+            <input name="contactName" placeholder="Contact name" className="rounded-xl border border-black/10 px-4 py-3" required />
+            <input name="email" type="email" placeholder="name@company.com" className="rounded-xl border border-black/10 px-4 py-3" required />
+            <input name="title" placeholder="Owner, office manager, etc." className="rounded-xl border border-black/10 px-4 py-3" />
+            <select name="status" className="rounded-xl border border-black/10 px-4 py-3" defaultValue="new">
+              <option value="new">new</option>
+              <option value="queued">queued</option>
+              <option value="sent">sent</option>
+              <option value="replied">replied</option>
+              <option value="bounced">bounced</option>
+              <option value="not_interested">not_interested</option>
+              <option value="do_not_contact">do_not_contact</option>
+            </select>
+            <input name="note" placeholder="Notes" className="rounded-xl border border-black/10 px-4 py-3" />
+            <button className="rounded-xl bg-black px-4 py-3 text-white md:col-span-2">Save lead</button>
+          </form>
+        </section>
 
-        <div className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm">
-          <table className="min-w-full text-sm">
-            <thead className="bg-black/[0.04] text-left">
-              <tr>
-                <th className="px-4 py-3">Contact</th>
-                <th className="px-4 py-3">Company</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.leads.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-black/55">
-                    No leads yet — add real contact records next.
-                  </td>
-                </tr>
-              ) : (
-                data.leads.map((lead) => (
-                  <tr key={lead.id} className="border-t border-black/5 align-top">
-                    <td className="px-4 py-3 font-medium">{lead.contactName}</td>
-                    <td className="px-4 py-3">{companyMap.get(lead.companyId)?.name || 'Unknown company'}</td>
-                    <td className="px-4 py-3">{lead.email}</td>
-                    <td className="px-4 py-3">{lead.title || '—'}</td>
-                    <td className="px-4 py-3">{lead.status}</td>
-                    <td className="px-4 py-3 text-black/70">{lead.note || '—'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          {data.leads.length === 0 ? (
+            <div className="rounded-2xl border border-black/10 bg-white p-6 text-black/55 shadow-sm">
+              No leads yet — add real contact records next.
+            </div>
+          ) : (
+            data.leads.map((lead) => {
+              const company = companyMap.get(lead.companyId);
+              const matchingTemplates = data.templates.filter(
+                (template) => template.active && (template.niche === company?.niche || template.niche === 'general')
+              );
+
+              return (
+                <div key={lead.id} className="rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold">{lead.contactName}</h2>
+                      <p className="text-sm text-black/65">{company?.name || 'Unknown company'} • {lead.email}</p>
+                      <p className="mt-1 text-sm text-black/55">Status: {lead.status}{lead.title ? ` • ${lead.title}` : ''}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-xl bg-black/[0.03] p-4">
+                    <div className="text-sm text-black/65">Send first-touch email</div>
+                    <form action={sendTemplateEmail} className="mt-3 flex flex-col gap-3 md:flex-row">
+                      <input type="hidden" name="leadId" value={lead.id} />
+                      <select name="templateId" className="min-w-[280px] rounded-xl border border-black/10 px-4 py-3" defaultValue={matchingTemplates[0]?.id || ''} required>
+                        {matchingTemplates.length === 0 ? (
+                          <option value="">No active template for this niche</option>
+                        ) : (
+                          matchingTemplates.map((template) => (
+                            <option key={template.id} value={template.id}>{template.name}</option>
+                          ))
+                        )}
+                      </select>
+                      <button
+                        disabled={matchingTemplates.length === 0 || lead.status === 'do_not_contact'}
+                        className="rounded-xl bg-blue-600 px-4 py-3 text-white disabled:cursor-not-allowed disabled:bg-blue-300"
+                      >
+                        Send via Resend
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </main>
