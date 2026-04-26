@@ -21,11 +21,11 @@ This first pass is intentionally simple:
 
 ## Next recommended steps
 
-1. Add auth before deployment
-2. Add forms for creating/editing companies, leads, templates
-3. Add Resend send endpoint
-4. Add webhook route for delivered/bounced/failed events
-5. Add batch queue and follow-up workflow
+1. Add stronger auth before deployment (current API supports simple admin key auth)
+2. Add edit/delete flows for companies, leads, templates
+3. Configure Resend webhook route for delivered/bounced/failed events
+4. Add batch queue and follow-up workflow
+5. Add reply tracking / unsubscribe handling
 
 ## Run locally
 
