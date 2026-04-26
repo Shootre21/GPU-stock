@@ -41,3 +41,24 @@ Copy `.env.example` to `.env.local` and fill in:
 
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
+- `CRM_ADMIN_KEY`
+
+## API auth
+
+When `CRM_ADMIN_KEY` is set, dashboard/API access is protected.
+Use either:
+
+- `x-crm-admin-key: <your-key>`
+- `Authorization: Bearer <your-key>`
+
+## Important routes
+
+- Dashboard: `/`
+- Single send API: `POST /api/send`
+- Batch send API: `POST /api/batch-send`
+- Resend webhook: `POST /api/webhooks/resend`
+
+## Batch send guardrail
+
+- Batch sends are currently limited to **10 leads per request** on purpose.
+- Start with very small batches and test on yourself first.
