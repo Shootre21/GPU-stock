@@ -15,9 +15,10 @@ Simple internal CRM for Albany small-business cybersecurity outreach.
 
 This first pass is intentionally simple:
 - local JSON-backed data in `data/crm.json`
-- no auth yet
-- no live send action yet
-- no webhooks yet
+- API send flow wired to Resend
+- Resend webhook route included
+- optional middleware/API protection via `CRM_ADMIN_KEY`
+- small batch send API limited to 10 leads per request
 
 ## Next recommended steps
 
