@@ -170,6 +170,15 @@ async function scan() {
   return activeScan;
 }
 
+function triggerScan() {
+  if (!activeScan) {
+    activeScan = runScan().finally(() => {
+      activeScan = null;
+    });
+  }
+  return activeScan;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (url.pathname === '/api/state') return send(res, 200, readJson(STATE_FILE, {}));
@@ -190,7 +199,10 @@ const server = http.createServer(async (req, res) => {
       alertCount: Array.isArray(state.alerts) ? state.alerts.length : 0
     });
   }
-  if (url.pathname === '/api/scan' && req.method === 'POST') return send(res, 200, await scan());
+  if (url.pathname === '/api/scan' && req.method === 'POST') {
+    triggerScan();
+    return send(res, 202, { ok: true, started: true, inProgress: true });
+  }
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     const file = path.join(PUBLIC_DIR, 'index.html');
     return send(res, 200, fs.readFileSync(file, 'utf8'), 'text/html');
