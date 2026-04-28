@@ -59,6 +59,6 @@
     { "id": "bhphoto", "enabled": false },
     { "id": "microcenter", "enabled": false },
     { "id": "amazon", "enabled": false },
-    { "id": "walmart", "enabled": false }
+    { "id": "walmart", "enabled": true }
   ]
 }
