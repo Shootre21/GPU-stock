@@ -2,6 +2,7 @@ const statusEl = document.getElementById('status');
 const alertsEl = document.getElementById('alerts');
 const listingsEl = document.getElementById('listings');
 const storeStatusEl = document.getElementById('storeStatus');
+const watchlistEl = document.getElementById('watchlist');
 const scanBtn = document.getElementById('scanBtn');
 const bruhSound = document.getElementById('bruhSound');
 const fahhhSound = document.getElementById('fahhhSound');
@@ -32,6 +33,7 @@ async function loadState() {
     <div class="item"><strong>Scan state:</strong> <span class="${state.isScanning ? 'warn' : 'good'}">${state.isScanning ? 'scanning…' : 'idle'}</span></div>
     <div class="item"><strong>Qualifying listings:</strong> <span class="good">${(state.stores || []).length}</span></div>
     <div class="item"><strong>Total alerts kept:</strong> <span class="warn">${(state.alerts || []).length}</span></div>
+    <div class="item"><strong>Watchlist targets:</strong> <span class="warn">${(state.watchlist || []).length}</span></div>
   `;
 
   const alerts = state.alerts || [];
@@ -60,10 +62,21 @@ async function loadState() {
     <div class="item">
       <div><strong>${esc(item.store)}</strong> — <span class="${item.ok ? 'good' : 'bad'}">${item.ok ? 'ok' : 'error'}</span></div>
       <div class="muted">checked ${item.checkedAt ? new Date(item.checkedAt).toLocaleTimeString() : 'unknown'} • seen ${esc(item.seen)} • keyword ${esc(item.matchedKeywords)} • price-ok ${esc(item.matchedPrice)} • qualifying ${esc(item.qualifying)}</div>
-      <div class="muted">diagnosis: ${esc(item.diagnosis || 'unknown')}</div>
+      <div class="muted">diagnosis: ${esc(item.diagnosis || 'unknown')} • failures ${esc(item.consecutiveFailures ?? 0)}${item.cooldownUntil ? ` • cooldown until ${esc(new Date(item.cooldownUntil).toLocaleTimeString())}` : ''}</div>
       ${item.error ? `<div class="bad">${esc(item.error)}</div>` : ''}
     </div>
   `).join('') : '<div class="muted">No store checks yet.</div>';
+
+  const watchlist = state.watchlist || [];
+  watchlistEl.innerHTML = watchlist.length ? watchlist.map(item => `
+    <div class="item product-card">
+      <div class="product-body">
+        <div><strong>${esc(item.title || item.url)}</strong></div>
+        <div class="muted">${esc(item.store || 'watchlist')} — $${esc(item.price)} — ${item.inStock === false ? '<span class="bad">out of stock</span>' : '<span class="good">tracked</span>'}</div>
+        <div><a class="link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Open target</a></div>
+      </div>
+    </div>
+  `).join('') : '<div class="muted">No manual watchlist targets yet.</div>';
 
   if (alerts.length > lastAlertCount) {
     const newest = alerts[alerts.length - 1];
