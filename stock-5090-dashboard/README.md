@@ -10,6 +10,11 @@ Planned v1 features:
 - dashboard UI
 - sound hooks for new qualifying stock
 
+Current operational improvements:
+- overlapping scan protection
+- `/api/health` endpoint for quick status/diagnostics
+- store-level diagnostics in `/api/state`
+
 ## Sound files
 
 Place your custom sounds in:
@@ -33,3 +38,9 @@ Or use compose:
 ```bash
 docker compose up --build
 ```
+
+## API
+
+- `GET /api/state` — current normalized listings, alerts, and store diagnostics
+- `POST /api/scan` — trigger a scan immediately
+- `GET /api/health` — lightweight health/scan status endpoint

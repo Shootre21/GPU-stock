@@ -9,6 +9,7 @@ const CONFIG_FILE = path.join(ROOT, 'config.json');
 const STATE_FILE = path.join(ROOT, 'data', 'state.json');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const PORT = process.env.STOCK_DASHBOARD_PORT || 4388;
+let activeScan = null;
 
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
 function writeJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
@@ -30,7 +31,7 @@ function pruneAlerts(alerts = []) {
   return out.slice(-80);
 }
 
-async function scan() {
+async function runScan() {
   const config = readJson(CONFIG_FILE, {});
   const state = readJson(STATE_FILE, { stores: [], alerts: [], lastScanAt: null });
   state.isScanning = true;
@@ -101,9 +102,34 @@ async function scan() {
   return nextState;
 }
 
+async function scan() {
+  if (activeScan) return activeScan;
+  activeScan = runScan().finally(() => {
+    activeScan = null;
+  });
+  return activeScan;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (url.pathname === '/api/state') return send(res, 200, readJson(STATE_FILE, {}));
+  if (url.pathname === '/api/health') {
+    const config = readJson(CONFIG_FILE, {});
+    const state = readJson(STATE_FILE, {});
+    return send(res, 200, {
+      ok: true,
+      port: Number(PORT),
+      polling: {
+        intervalMs: config.pollIntervalMs || 120000,
+        inProgress: Boolean(activeScan),
+        lastScanAt: state.lastScanAt || null,
+        scanStartedAt: state.scanStartedAt || null
+      },
+      enabledStores: (config.stores || []).filter(store => store.enabled).map(store => store.id),
+      listingCount: Array.isArray(state.stores) ? state.stores.length : 0,
+      alertCount: Array.isArray(state.alerts) ? state.alerts.length : 0
+    });
+  }
   if (url.pathname === '/api/scan' && req.method === 'POST') return send(res, 200, await scan());
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     const file = path.join(PUBLIC_DIR, 'index.html');
