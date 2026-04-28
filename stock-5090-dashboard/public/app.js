@@ -57,7 +57,7 @@ async function loadState() {
   const trackedModels = deriveTrackedModels(state.stores || [], state.watchlist || []);
   modelSummaryEl.innerHTML = `
     <div class="pill-row">${trackedModels.map(model => `<span class="pill">RTX ${esc(model)}</span>`).join('')}</div>
-    <div class="muted">Watching for lower-priced / MSRP-ish matches across the current configured model set.</div>
+    <div class="muted">Watching for lower-priced / MSRP-ish matches across the current configured model set, with per-model target caps.</div>
   `;
 
   const signal = computeSignalSummary(state);
@@ -82,7 +82,8 @@ async function loadState() {
       <div class="product-media">${item.imageUrl ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.title)}" />` : '<div class="image-placeholder muted">No image</div>'}</div>
       <div class="product-body">
         <div><strong>${esc(item.title)}</strong></div>
-        <div class="muted">${esc(item.store)} — $${esc(item.price)} — ${item.inStock ? '<span class="good">in stock</span>' : '<span class="bad">out of stock</span>'}</div>
+        <div class="muted">${esc(item.store)}${item.model ? ` • RTX ${esc(item.model)}` : ''} — $${esc(item.price)} — ${item.inStock ? '<span class="good">in stock</span>' : '<span class="bad">out of stock</span>'}</div>
+        <div class="muted">target fit: ${item.withinTarget === false ? '<span class="bad">above target</span>' : '<span class="good">within target</span>'}</div>
         <div><a class="link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Open listing</a></div>
       </div>
     </div>
@@ -103,7 +104,8 @@ async function loadState() {
     <div class="item product-card">
       <div class="product-body">
         <div><strong>${esc(item.title || item.url)}</strong></div>
-        <div class="muted">${esc(item.store || 'watchlist')} — $${esc(item.price)} — ${item.inStock === false ? '<span class="bad">out of stock</span>' : '<span class="good">tracked</span>'}</div>
+        <div class="muted">${esc(item.store || 'watchlist')}${item.model ? ` • RTX ${esc(item.model)}` : ''} — $${esc(item.price)} — ${item.inStock === false ? '<span class="bad">out of stock</span>' : '<span class="good">tracked</span>'}</div>
+        <div class="muted">target fit: ${item.withinTarget === false ? '<span class="bad">above target</span>' : '<span class="good">within target</span>'}</div>
         <div><a class="link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">Open target</a></div>
       </div>
     </div>

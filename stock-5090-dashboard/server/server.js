@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { storeFetchers } = require('./stores');
-const { matchesKeywords, inPriceRange, listingKey } = require('./utils');
+const { matchesKeywords, inPriceRange, extractModel, withinTargetCap, listingKey } = require('./utils');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONFIG_FILE = path.join(ROOT, 'config.json');
@@ -73,6 +73,8 @@ async function runScan() {
       const normalized = listingFromWatchItem(watchItem);
       if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
       if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
+      normalized.model = extractModel(normalized.title);
+      normalized.withinTarget = withinTargetCap(normalized, config.targetCaps || {});
       nextListings.push(normalized);
       const key = listingKey(normalized);
       if (normalized.inStock && !previousInStockKeys.has(key)) {
@@ -115,6 +117,8 @@ async function runScan() {
           matchedKeywords += 1;
           if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
           matchedPrice += 1;
+          normalized.model = extractModel(normalized.title);
+          normalized.withinTarget = withinTargetCap(normalized, config.targetCaps || {});
           qualifying += 1;
           nextListings.push(normalized);
           const key = listingKey(normalized);
