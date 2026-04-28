@@ -1,6 +1,6 @@
 {
-  "minPrice": 1500,
-  "maxPrice": 4000,
+  "minPrice": 400,
+  "maxPrice": 2600,
   "pollIntervalMs": 90000,
   "storeTimeoutMs": 15000,
   "storeFailureBackoffThreshold": 3,
@@ -11,7 +11,23 @@
     "fahhhh": "/sounds/fahhhh.mp3"
   },
   "watchlist": [],
-  "productKeywords": ["5090", "rtx 5090", "geforce rtx 5090"],
+  "productKeywords": [
+    "3090",
+    "rtx 3090",
+    "geforce rtx 3090",
+    "4080",
+    "rtx 4080",
+    "geforce rtx 4080",
+    "4090",
+    "rtx 4090",
+    "geforce rtx 4090",
+    "5080",
+    "rtx 5080",
+    "geforce rtx 5080",
+    "5090",
+    "rtx 5090",
+    "geforce rtx 5090"
+  ],
   "stores": [
     { "id": "bestbuy", "enabled": true },
     { "id": "newegg", "enabled": true },
