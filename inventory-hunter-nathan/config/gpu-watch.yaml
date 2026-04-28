@@ -1,0 +1,12 @@
+---
+refresh_interval: 10 # seconds
+max_price: 2200
+urls:
+  # Replace these placeholders with real product URLs you actually want tracked.
+  # Keep them grouped by model/store so this stays maintainable.
+  - https://example.com/gpu/rtx-3090-target
+  - https://example.com/gpu/rtx-4080-target
+  - https://example.com/gpu/rtx-4090-target
+  - https://example.com/gpu/rtx-5080-target
+  - https://example.com/gpu/rtx-5090-target
+...
