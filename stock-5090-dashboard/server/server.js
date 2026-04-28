@@ -217,5 +217,11 @@ server.listen(PORT, () => {
   console.log(`5090 stock dashboard listening on http://127.0.0.1:${PORT}`);
 });
 
-setInterval(() => { scan().catch(err => console.error('scan error', err)); }, readJson(CONFIG_FILE, { pollIntervalMs: 120000 }).pollIntervalMs || 120000);
-scan().catch(err => console.error('initial scan error', err));
+const configAtStartup = readJson(CONFIG_FILE, { pollIntervalMs: 120000, autoStartScan: false });
+setInterval(() => {
+  scan().catch(err => console.error('scan error', err));
+}, configAtStartup.pollIntervalMs || 120000);
+
+if (configAtStartup.autoStartScan) {
+  scan().catch(err => console.error('initial scan error', err));
+}
