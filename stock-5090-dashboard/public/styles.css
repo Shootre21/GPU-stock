@@ -7,6 +7,8 @@ button { background: #60a5fa; color: #0b1020; border: 0; border-radius: 10px; pa
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 .summary-grid { margin-top: 4px; }
 .card { background: #131a31; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 16px; }
+.watchlist-form { display: grid; grid-template-columns: 1.3fr .7fr 2fr auto; gap: 10px; margin: 12px 0 16px; }
+.watchlist-form input { background: #0f1730; color: #ecf2ff; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 12px; }
 .item { border-bottom: 1px solid rgba(255,255,255,.08); padding: 10px 0; }
 .item:last-child { border-bottom: none; }
 .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -20,4 +22,4 @@ button { background: #60a5fa; color: #0b1020; border: 0; border-radius: 10px; pa
 .warn { color: #fcd34d; }
 .bad { color: #fca5a5; }
 .link { color: #93c5fd; text-decoration: none; }
-@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .hero { flex-direction: column; align-items: flex-start; } .product-card { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .hero { flex-direction: column; align-items: flex-start; } .product-card { grid-template-columns: 1fr; } .watchlist-form { grid-template-columns: 1fr; } }

@@ -43,6 +43,12 @@
     <section class="card">
       <h2>Watchlist</h2>
       <p class="muted">Manual product targets you trust more than broad search scraping.</p>
+      <form id="watchlistForm" class="watchlist-form">
+        <input id="watchTitle" type="text" placeholder="GPU title" />
+        <input id="watchPrice" type="number" step="0.01" placeholder="Price" />
+        <input id="watchUrl" type="url" placeholder="Product URL" />
+        <button type="submit">Add target</button>
+      </form>
       <div id="watchlist"></div>
     </section>
 

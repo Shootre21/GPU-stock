@@ -14,6 +14,14 @@ let activeScan = null;
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
 function writeJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
 function send(res, code, body, type='application/json') { res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' }); res.end(type === 'application/json' ? JSON.stringify(body, null, 2) : body); }
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => data += chunk);
+    req.on('end', () => resolve(data));
+    req.on('error', reject);
+  });
+}
 function sameStoreError(a, b) {
   return a && b && a.type === 'store_error' && b.type === 'store_error' && a.store === b.store && a.error === b.error;
 }
@@ -215,6 +223,15 @@ function triggerScan() {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (url.pathname === '/api/state') return send(res, 200, readJson(STATE_FILE, {}));
+  if (url.pathname === '/api/config' && req.method === 'GET') {
+    const config = readJson(CONFIG_FILE, {});
+    return send(res, 200, {
+      watchlist: config.watchlist || [],
+      targetCaps: config.targetCaps || {},
+      minPrice: config.minPrice,
+      maxPrice: config.maxPrice
+    });
+  }
   if (url.pathname === '/api/health') {
     const config = readJson(CONFIG_FILE, {});
     const state = readJson(STATE_FILE, {});
@@ -236,6 +253,25 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/scan' && req.method === 'POST') {
     triggerScan();
     return send(res, 202, { ok: true, started: true, inProgress: true });
+  }
+  if (url.pathname === '/api/watchlist' && req.method === 'POST') {
+    const raw = await readBody(req);
+    const body = JSON.parse(raw || '{}');
+    if (!body.title || !body.url || !Number.isFinite(Number(body.price))) {
+      return send(res, 400, { error: 'title, url, and numeric price are required' });
+    }
+    const config = readJson(CONFIG_FILE, {});
+    const nextItem = {
+      store: body.store || 'manual',
+      title: String(body.title),
+      price: Number(body.price),
+      url: String(body.url),
+      imageUrl: body.imageUrl ? String(body.imageUrl) : '',
+      inStock: body.inStock !== false
+    };
+    config.watchlist = [...(config.watchlist || []), nextItem];
+    writeJson(CONFIG_FILE, config);
+    return send(res, 201, { ok: true, item: nextItem, watchlistCount: config.watchlist.length });
   }
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     return send(res, 200, fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8'), 'text/html');

@@ -8,6 +8,10 @@ const bruhSound = document.getElementById('bruhSound');
 const fahhhSound = document.getElementById('fahhhSound');
 const modelSummaryEl = document.getElementById('modelSummary');
 const signalSummaryEl = document.getElementById('signalSummary');
+const watchlistForm = document.getElementById('watchlistForm');
+const watchTitleEl = document.getElementById('watchTitle');
+const watchPriceEl = document.getElementById('watchPrice');
+const watchUrlEl = document.getElementById('watchUrl');
 
 let lastAlertCount = 0;
 let soundConfig = { bruh: '/sounds/bruh.mp3', fahhhh: '/sounds/fahhhh.mp3' };
@@ -136,6 +140,26 @@ scanBtn.addEventListener('click', async () => {
       scanBtn.textContent = 'Scan now';
     }, 1500);
   }
+});
+
+watchlistForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const payload = {
+    title: watchTitleEl.value.trim(),
+    price: Number(watchPriceEl.value),
+    url: watchUrlEl.value.trim()
+  };
+  if (!payload.title || !payload.url || !Number.isFinite(payload.price)) return;
+  await fetch('/api/watchlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  watchTitleEl.value = '';
+  watchPriceEl.value = '';
+  watchUrlEl.value = '';
+  await fetch('/api/scan', { method: 'POST' });
+  await loadState();
 });
 
 setInterval(loadState, 5000);
