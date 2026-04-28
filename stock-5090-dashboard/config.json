@@ -11,7 +11,24 @@
     "bruh": "/sounds/bruh.mp3",
     "fahhhh": "/sounds/fahhhh.mp3"
   },
-  "watchlist": [],
+  "watchlist": [
+    {
+      "store": "manual",
+      "title": "RTX 4090 Founders Edition Placeholder",
+      "price": 1599,
+      "url": "https://example.com/gpu/rtx-4090-fe",
+      "imageUrl": "",
+      "inStock": true
+    },
+    {
+      "store": "manual",
+      "title": "RTX 5080 MSRP Target Placeholder",
+      "price": 999,
+      "url": "https://example.com/gpu/rtx-5080-msrp",
+      "imageUrl": "",
+      "inStock": true
+    }
+  ],
   "productKeywords": [
     "3090",
     "rtx 3090",
@@ -30,11 +47,11 @@
     "geforce rtx 5090"
   ],
   "stores": [
-    { "id": "bestbuy", "enabled": true },
-    { "id": "newegg", "enabled": true },
+    { "id": "bestbuy", "enabled": false },
+    { "id": "newegg", "enabled": false },
     { "id": "bhphoto", "enabled": false },
     { "id": "microcenter", "enabled": false },
     { "id": "amazon", "enabled": false },
-    { "id": "walmart", "enabled": true }
+    { "id": "walmart", "enabled": false }
   ]
 }

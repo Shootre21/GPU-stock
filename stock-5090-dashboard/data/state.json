@@ -1,30 +1,103 @@
 {
-  "stores": [],
+  "stores": [
+    {
+      "store": "manual",
+      "title": "RTX 4090 Founders Edition Placeholder",
+      "price": 1599,
+      "url": "https://example.com/gpu/rtx-4090-fe",
+      "imageUrl": "",
+      "inStock": true,
+      "source": "watchlist"
+    },
+    {
+      "store": "manual",
+      "title": "RTX 5080 MSRP Target Placeholder",
+      "price": 999,
+      "url": "https://example.com/gpu/rtx-5080-msrp",
+      "imageUrl": "",
+      "inStock": true,
+      "source": "watchlist"
+    }
+  ],
   "alerts": [
     {
       "at": "2026-04-24T14:57:16.350Z",
       "type": "store_error",
       "store": "bhphoto",
       "error": "Error: bhphoto_http_403"
-    }
-  ],
-  "lastScanAt": "2026-04-24T15:55:04.327Z",
-  "scanStartedAt": "2026-04-24T15:55:02.598Z",
-  "isScanning": false,
-  "storeStatus": [
-    {
-      "store": "bestbuy",
-      "ok": true,
-      "seen": 0,
-      "checkedAt": "2026-04-24T15:55:04.155Z",
-      "error": null
     },
     {
+      "at": "2026-04-24T17:34:53.526Z",
+      "type": "store_error",
+      "store": "bestbuy",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "at": "2026-04-24T20:15:06.359Z",
+      "type": "store_error",
       "store": "newegg",
-      "ok": true,
-      "seen": 0,
-      "checkedAt": "2026-04-24T15:55:04.327Z",
-      "error": null
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "at": "2026-04-28T04:05:15.245Z",
+      "type": "store_error",
+      "store": "walmart",
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "at": "2026-04-28T21:53:45.729Z",
+      "type": "new_in_stock",
+      "listing": {
+        "store": "manual",
+        "title": "RTX 4090 Founders Edition Placeholder",
+        "price": 1599,
+        "url": "https://example.com/gpu/rtx-4090-fe",
+        "imageUrl": "",
+        "inStock": true,
+        "source": "watchlist"
+      },
+      "sound": "BRUH_OR_FAHHH"
+    },
+    {
+      "at": "2026-04-28T21:53:45.729Z",
+      "type": "new_in_stock",
+      "listing": {
+        "store": "manual",
+        "title": "RTX 5080 MSRP Target Placeholder",
+        "price": 999,
+        "url": "https://example.com/gpu/rtx-5080-msrp",
+        "imageUrl": "",
+        "inStock": true,
+        "source": "watchlist"
+      },
+      "sound": "BRUH_OR_FAHHH"
     }
-  ]
+  ],
+  "lastScanAt": "2026-04-28T21:53:45.729Z",
+  "scanStartedAt": "2026-04-28T21:53:45.728Z",
+  "isScanning": false,
+  "storeStatus": [],
+  "soundConfig": {
+    "bruh": "/sounds/bruh.mp3",
+    "fahhhh": "/sounds/fahhhh.mp3"
+  },
+  "watchlist": [
+    {
+      "store": "manual",
+      "title": "RTX 4090 Founders Edition Placeholder",
+      "price": 1599,
+      "url": "https://example.com/gpu/rtx-4090-fe",
+      "imageUrl": "",
+      "inStock": true
+    },
+    {
+      "store": "manual",
+      "title": "RTX 5080 MSRP Target Placeholder",
+      "price": 999,
+      "url": "https://example.com/gpu/rtx-5080-msrp",
+      "imageUrl": "",
+      "inStock": true
+    }
+  ],
+  "storeFailures": {}
 }
