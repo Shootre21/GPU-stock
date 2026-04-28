@@ -6,6 +6,7 @@
   "storeFailureBackoffThreshold": 3,
   "storeFailureCooldownMs": 300000,
   "autoStartScan": false,
+  "autoPolling": false,
   "sounds": {
     "bruh": "/sounds/bruh.mp3",
     "fahhhh": "/sounds/fahhhh.mp3"

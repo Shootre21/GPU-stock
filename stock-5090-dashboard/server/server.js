@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { storeFetchers, fetchWithTimeout } = require('./stores');
+const { storeFetchers } = require('./stores');
 const { matchesKeywords, inPriceRange, listingKey } = require('./utils');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -54,11 +54,12 @@ function listingFromWatchItem(item) {
 
 async function runScan() {
   const config = readJson(CONFIG_FILE, {});
-  const state = readJson(STATE_FILE, { stores: [], alerts: [], lastScanAt: null });
+  const state = readJson(STATE_FILE, { stores: [], alerts: [], lastScanAt: null, storeFailures: {} });
   state.isScanning = true;
   state.scanStartedAt = new Date().toISOString();
   state.storeStatus = [];
   writeJson(STATE_FILE, state);
+
   const previousListings = state.stores || [];
   const previousInStockKeys = new Set(previousListings.filter(item => item.inStock).map(listingKey));
   const nextListings = [];
@@ -67,99 +68,127 @@ async function runScan() {
   const existingAlerts = state.alerts || [];
   const storeFailures = state.storeFailures || {};
 
-  for (const watchItem of config.watchlist || []) {
-    const normalized = listingFromWatchItem(watchItem);
-    if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
-    if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
-    nextListings.push(normalized);
-    const key = listingKey(normalized);
-    if (normalized.inStock && !previousInStockKeys.has(key)) {
-      newAlerts.push({ at: new Date().toISOString(), type: 'new_in_stock', listing: normalized, sound: 'BRUH_OR_FAHHH' });
+  try {
+    for (const watchItem of config.watchlist || []) {
+      const normalized = listingFromWatchItem(watchItem);
+      if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
+      if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
+      nextListings.push(normalized);
+      const key = listingKey(normalized);
+      if (normalized.inStock && !previousInStockKeys.has(key)) {
+        newAlerts.push({ at: new Date().toISOString(), type: 'new_in_stock', listing: normalized, sound: 'BRUH_OR_FAHHH' });
+      }
     }
-  }
 
-  for (const store of config.stores || []) {
-    if (!store.enabled) continue;
-    const fetcher = storeFetchers[store.id];
-    if (!fetcher) continue;
-    const failureState = storeFailures[store.id] || { consecutiveFailures: 0, cooldownUntil: null, lastError: null, lastFailureAt: null };
-    if (failureState.cooldownUntil && new Date(failureState.cooldownUntil).getTime() > Date.now()) {
-      storeStatus.push({
-        store: store.id,
-        ok: false,
-        seen: 0,
-        matchedKeywords: 0,
-        matchedPrice: 0,
-        qualifying: 0,
-        diagnosis: 'cooldown_active',
-        checkedAt: new Date().toISOString(),
-        error: failureState.lastError || 'cooldown_active',
-        consecutiveFailures: failureState.consecutiveFailures,
-        cooldownUntil: failureState.cooldownUntil
-      });
-      continue;
-    }
-    try {
-      const results = await fetcher(config);
-      let matchedKeywords = 0;
-      let matchedPrice = 0;
-      let qualifying = 0;
-      for (const item of results) {
-        const normalized = { ...item, store: store.id };
-        if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
-        matchedKeywords += 1;
-        if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
-        matchedPrice += 1;
-        qualifying += 1;
-        nextListings.push(normalized);
-        const key = listingKey(normalized);
-        if (normalized.inStock && !previousInStockKeys.has(key)) {
-          newAlerts.push({ at: new Date().toISOString(), type: 'new_in_stock', listing: normalized, sound: 'BRUH_OR_FAHHH' });
+    for (const store of config.stores || []) {
+      if (!store.enabled) continue;
+      const fetcher = storeFetchers[store.id];
+      if (!fetcher) continue;
+
+      const failureState = storeFailures[store.id] || { consecutiveFailures: 0, cooldownUntil: null, lastError: null, lastFailureAt: null };
+      if (failureState.cooldownUntil && new Date(failureState.cooldownUntil).getTime() > Date.now()) {
+        storeStatus.push({
+          store: store.id,
+          ok: false,
+          seen: 0,
+          matchedKeywords: 0,
+          matchedPrice: 0,
+          qualifying: 0,
+          diagnosis: 'cooldown_active',
+          checkedAt: new Date().toISOString(),
+          error: failureState.lastError || 'cooldown_active',
+          consecutiveFailures: failureState.consecutiveFailures,
+          cooldownUntil: failureState.cooldownUntil
+        });
+        continue;
+      }
+
+      try {
+        const results = await fetcher(config);
+        let matchedKeywords = 0;
+        let matchedPrice = 0;
+        let qualifying = 0;
+
+        for (const item of results) {
+          const normalized = { ...item, store: store.id };
+          if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
+          matchedKeywords += 1;
+          if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
+          matchedPrice += 1;
+          qualifying += 1;
+          nextListings.push(normalized);
+          const key = listingKey(normalized);
+          if (normalized.inStock && !previousInStockKeys.has(key)) {
+            newAlerts.push({ at: new Date().toISOString(), type: 'new_in_stock', listing: normalized, sound: 'BRUH_OR_FAHHH' });
+          }
+        }
+
+        const diagnosis = results.length === 0
+          ? 'parser_no_match_or_no_results'
+          : matchedKeywords === 0
+            ? 'no_keyword_match'
+            : matchedPrice === 0
+              ? 'no_price_match'
+              : qualifying === 0
+                ? 'no_qualifying_items'
+                : 'qualifying_items_found';
+
+        storeFailures[store.id] = { consecutiveFailures: 0, cooldownUntil: null, lastError: null, lastFailureAt: null };
+        storeStatus.push({
+          store: store.id,
+          ok: true,
+          seen: results.length,
+          matchedKeywords,
+          matchedPrice,
+          qualifying,
+          diagnosis,
+          checkedAt: new Date().toISOString(),
+          error: null,
+          consecutiveFailures: 0,
+          cooldownUntil: null
+        });
+      } catch (error) {
+        const errorText = String(error);
+        const consecutiveFailures = (failureState.consecutiveFailures || 0) + 1;
+        const shouldCooldown = consecutiveFailures >= (config.storeFailureBackoffThreshold || 3);
+        const cooldownUntil = shouldCooldown ? new Date(Date.now() + (config.storeFailureCooldownMs || 300000)).toISOString() : null;
+        storeFailures[store.id] = { consecutiveFailures, cooldownUntil, lastError: errorText, lastFailureAt: new Date().toISOString() };
+        storeStatus.push({
+          store: store.id,
+          ok: false,
+          seen: 0,
+          matchedKeywords: 0,
+          matchedPrice: 0,
+          qualifying: 0,
+          diagnosis: classifyError(error),
+          checkedAt: new Date().toISOString(),
+          error: errorText,
+          consecutiveFailures,
+          cooldownUntil
+        });
+        const latestExisting = [...existingAlerts].reverse().find(alert => alert.type === 'store_error' && alert.store === store.id);
+        const nextError = { at: new Date().toISOString(), type: 'store_error', store: store.id, error: errorText };
+        if (!sameStoreError(latestExisting, nextError)) {
+          newAlerts.push(nextError);
         }
       }
-      const diagnosis = results.length === 0 ? 'parser_no_match_or_no_results' : matchedKeywords === 0 ? 'no_keyword_match' : matchedPrice === 0 ? 'no_price_match' : qualifying === 0 ? 'no_qualifying_items' : 'qualifying_items_found';
-      storeFailures[store.id] = { consecutiveFailures: 0, cooldownUntil: null, lastError: null, lastFailureAt: null };
-      storeStatus.push({
-        store: store.id,
-        ok: true,
-        seen: results.length,
-        matchedKeywords,
-        matchedPrice,
-        qualifying,
-        diagnosis,
-        checkedAt: new Date().toISOString(),
-        error: null,
-        consecutiveFailures: 0,
-        cooldownUntil: null
-      });
-    } catch (error) {
-      const errorText = String(error);
-      const consecutiveFailures = (failureState.consecutiveFailures || 0) + 1;
-      const shouldCooldown = consecutiveFailures >= (config.storeFailureBackoffThreshold || 3);
-      const cooldownUntil = shouldCooldown ? new Date(Date.now() + (config.storeFailureCooldownMs || 300000)).toISOString() : null;
-      storeFailures[store.id] = { consecutiveFailures, cooldownUntil, lastError: errorText, lastFailureAt: new Date().toISOString() };
-      storeStatus.push({ store: store.id, ok: false, seen: 0, matchedKeywords: 0, matchedPrice: 0, qualifying: 0, diagnosis: classifyError(error), checkedAt: new Date().toISOString(), error: errorText, consecutiveFailures, cooldownUntil });
-      const latestExisting = [...existingAlerts].reverse().find(alert => alert.type === 'store_error' && alert.store === store.id);
-      const nextError = { at: new Date().toISOString(), type: 'store_error', store: store.id, error: errorText };
-      if (!sameStoreError(latestExisting, nextError)) {
-        newAlerts.push(nextError);
-      }
     }
+  } finally {
+    const nextState = {
+      stores: nextListings,
+      alerts: pruneAlerts([...(state.alerts || []), ...newAlerts]),
+      lastScanAt: new Date().toISOString(),
+      scanStartedAt: state.scanStartedAt,
+      isScanning: false,
+      storeStatus,
+      soundConfig: (config.sounds || {}),
+      watchlist: config.watchlist || [],
+      storeFailures
+    };
+    writeJson(STATE_FILE, nextState);
   }
 
-  const nextState = {
-    stores: nextListings,
-    alerts: pruneAlerts([...(state.alerts || []), ...newAlerts]),
-    lastScanAt: new Date().toISOString(),
-    scanStartedAt: state.scanStartedAt,
-    isScanning: false,
-    storeStatus,
-    soundConfig: (config.sounds || {}),
-    watchlist: config.watchlist || [],
-    storeFailures
-  };
-  writeJson(STATE_FILE, nextState);
-  return nextState;
+  return readJson(STATE_FILE, state);
 }
 
 async function scan() {
@@ -192,7 +221,8 @@ const server = http.createServer(async (req, res) => {
         intervalMs: config.pollIntervalMs || 120000,
         inProgress: Boolean(activeScan),
         lastScanAt: state.lastScanAt || null,
-        scanStartedAt: state.scanStartedAt || null
+        scanStartedAt: state.scanStartedAt || null,
+        autoPolling: Boolean(config.autoPolling)
       },
       enabledStores: (config.stores || []).filter(store => store.enabled).map(store => store.id),
       listingCount: Array.isArray(state.stores) ? state.stores.length : 0,
@@ -204,8 +234,7 @@ const server = http.createServer(async (req, res) => {
     return send(res, 202, { ok: true, started: true, inProgress: true });
   }
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
-    const file = path.join(PUBLIC_DIR, 'index.html');
-    return send(res, 200, fs.readFileSync(file, 'utf8'), 'text/html');
+    return send(res, 200, fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8'), 'text/html');
   }
   if (req.method === 'GET' && url.pathname === '/styles.css') {
     return send(res, 200, fs.readFileSync(path.join(PUBLIC_DIR, 'styles.css'), 'utf8'), 'text/css');
@@ -229,10 +258,12 @@ server.listen(PORT, () => {
   console.log(`5090 stock dashboard listening on http://127.0.0.1:${PORT}`);
 });
 
-const configAtStartup = readJson(CONFIG_FILE, { pollIntervalMs: 120000, autoStartScan: false });
-setInterval(() => {
-  scan().catch(err => console.error('scan error', err));
-}, configAtStartup.pollIntervalMs || 120000);
+const configAtStartup = readJson(CONFIG_FILE, { pollIntervalMs: 120000, autoStartScan: false, autoPolling: false });
+if (configAtStartup.autoPolling) {
+  setInterval(() => {
+    scan().catch(err => console.error('scan error', err));
+  }, configAtStartup.pollIntervalMs || 120000);
+}
 
 if (configAtStartup.autoStartScan) {
   scan().catch(err => console.error('initial scan error', err));
