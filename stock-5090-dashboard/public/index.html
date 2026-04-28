@@ -11,10 +11,23 @@
     <header class="hero">
       <div>
         <h1>RTX 5090 Stock Dashboard</h1>
-        <p>Deterministic watcher. No AI. Just signals, filters, and loud sounds when it matters.</p>
+        <p>Deterministic GPU watcher. No AI. Just signals, filters, and loud sounds when it matters.</p>
       </div>
-      <button id="scanBtn">Scan now</button>
+      <div class="hero-actions">
+        <button id="scanBtn">Scan now</button>
+      </div>
     </header>
+
+    <section class="grid summary-grid">
+      <div class="card">
+        <h2>Tracked models</h2>
+        <div id="modelSummary"></div>
+      </div>
+      <div class="card">
+        <h2>Signal quality</h2>
+        <div id="signalSummary"></div>
+      </div>
+    </section>
 
     <section class="grid">
       <div class="card">

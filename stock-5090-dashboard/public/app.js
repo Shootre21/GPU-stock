@@ -6,6 +6,8 @@ const watchlistEl = document.getElementById('watchlist');
 const scanBtn = document.getElementById('scanBtn');
 const bruhSound = document.getElementById('bruhSound');
 const fahhhSound = document.getElementById('fahhhSound');
+const modelSummaryEl = document.getElementById('modelSummary');
+const signalSummaryEl = document.getElementById('signalSummary');
 
 let lastAlertCount = 0;
 let soundConfig = { bruh: '/sounds/bruh.mp3', fahhhh: '/sounds/fahhhh.mp3' };
@@ -21,6 +23,22 @@ function chooseSound(listing) {
   return 'bruh';
 }
 
+function deriveTrackedModels(listings = [], watchlist = []) {
+  const source = [...listings, ...watchlist].map(item => String(item.title || '')).join(' | ').toLowerCase();
+  const known = ['3090', '4080', '4090', '5080', '5090'];
+  const found = known.filter(model => source.includes(model));
+  return found.length ? found : known;
+}
+
+function computeSignalSummary(state) {
+  const checks = state.storeStatus || [];
+  const enabled = checks.length;
+  const healthy = checks.filter(item => item.ok).length;
+  const cooldown = checks.filter(item => item.diagnosis === 'cooldown_active').length;
+  const stale = !state.lastScanAt || (Date.now() - new Date(state.lastScanAt).getTime()) > (10 * 60 * 1000);
+  return { enabled, healthy, cooldown, stale };
+}
+
 async function loadState() {
   const res = await fetch('/api/state');
   const state = await res.json();
@@ -34,6 +52,19 @@ async function loadState() {
     <div class="item"><strong>Qualifying listings:</strong> <span class="good">${(state.stores || []).length}</span></div>
     <div class="item"><strong>Total alerts kept:</strong> <span class="warn">${(state.alerts || []).length}</span></div>
     <div class="item"><strong>Watchlist targets:</strong> <span class="warn">${(state.watchlist || []).length}</span></div>
+  `;
+
+  const trackedModels = deriveTrackedModels(state.stores || [], state.watchlist || []);
+  modelSummaryEl.innerHTML = `
+    <div class="pill-row">${trackedModels.map(model => `<span class="pill">RTX ${esc(model)}</span>`).join('')}</div>
+    <div class="muted">Watching for lower-priced / MSRP-ish matches across the current configured model set.</div>
+  `;
+
+  const signal = computeSignalSummary(state);
+  signalSummaryEl.innerHTML = `
+    <div class="item"><strong>Healthy stores:</strong> <span class="${signal.healthy ? 'good' : 'bad'}">${signal.healthy}/${signal.enabled || 0}</span></div>
+    <div class="item"><strong>Cooldown stores:</strong> <span class="warn">${signal.cooldown}</span></div>
+    <div class="item"><strong>Signal state:</strong> <span class="${signal.stale ? 'warn' : 'good'}">${signal.stale ? 'stale / degraded' : 'fresh enough'}</span></div>
   `;
 
   const alerts = state.alerts || [];
@@ -98,8 +129,10 @@ scanBtn.addEventListener('click', async () => {
     await fetch('/api/scan', { method: 'POST' });
     await loadState();
   } finally {
-    scanBtn.disabled = false;
-    scanBtn.textContent = 'Scan now';
+    setTimeout(() => {
+      scanBtn.disabled = false;
+      scanBtn.textContent = 'Scan now';
+    }, 1500);
   }
 });
 
