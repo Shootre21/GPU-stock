@@ -1,0 +1,7 @@
+---
+refresh_interval: 10 # seconds
+max_price: 1100
+urls:
+  # Add real RTX 4080 product URLs below
+  - https://example.com/gpu/rtx-4080-target
+...

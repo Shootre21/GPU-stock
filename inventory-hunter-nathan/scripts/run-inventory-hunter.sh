@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 PKG_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
 UPSTREAM_DIR="$(cd "$PKG_DIR/../inventory-hunter-upstream" && pwd -P)"
-CONFIG_FILE="$PKG_DIR/config/gpu-watch.yaml"
+CONFIG_FILE="$PKG_DIR/config/rtx-5090.yaml"
 ALERTER_FILE="$PKG_DIR/config/alerters.yaml"
 IMAGE="ericjmarti/inventory-hunter:latest"
 

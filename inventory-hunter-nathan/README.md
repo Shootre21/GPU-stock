@@ -11,7 +11,12 @@ This package wraps the upstream `inventory-hunter` project into a simpler local 
 
 ## Included here
 
-- `config/gpu-watch.yaml` — starter multi-GPU config
+- `config/rtx-3090.yaml` — RTX 3090 starter config
+- `config/rtx-4080.yaml` — RTX 4080 starter config
+- `config/rtx-4090.yaml` — RTX 4090 starter config
+- `config/rtx-5080.yaml` — RTX 5080 starter config
+- `config/rtx-5090.yaml` — RTX 5090 starter config
+- `config/README.md` — notes on the per-model layout
 - `config/alerters.yaml.example` — starter alerter config template
 - `scripts/run-inventory-hunter.sh` — helper to run with mounted configs
 
@@ -21,9 +26,10 @@ Use this platform as a **known-product URL tracker**, not a broad automatic disc
 
 ## How to use
 
-1. Fill in `config/gpu-watch.yaml` with real product URLs you care about.
-2. Copy `config/alerters.yaml.example` to `config/alerters.yaml` and fill in your alert settings.
-3. Run:
+1. Pick one model config in `config/` and replace the placeholder URLs with real product URLs you care about.
+2. Update `scripts/run-inventory-hunter.sh` if you want it to point at a different model config than the default.
+3. Fill in `config/alerters.yaml` if needed.
+4. Run:
 
 ```bash
 ./scripts/run-inventory-hunter.sh

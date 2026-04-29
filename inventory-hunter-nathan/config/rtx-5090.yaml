@@ -1,0 +1,7 @@
+---
+refresh_interval: 10 # seconds
+max_price: 2200
+urls:
+  # Add real RTX 5090 product URLs below
+  - https://example.com/gpu/rtx-5090-target
+...
