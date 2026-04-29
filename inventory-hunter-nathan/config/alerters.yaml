@@ -1,0 +1,8 @@
+---
+alerters:
+  email:
+    sender: 141stfighterwing@gmail.com
+    recipients:
+      - nathan.carrasco1@gmail.com
+    relay: 127.0.0.1
+...
