@@ -18,7 +18,8 @@
       "price": 1599,
       "url": "https://example.com/gpu/rtx-4090-fe",
       "imageUrl": "",
-      "inStock": true
+      "inStock": true,
+      "productId": "nvidia-rtx4090-founders-edition-24gb"
     },
     {
       "store": "manual",
@@ -26,7 +27,8 @@
       "price": 999,
       "url": "https://example.com/gpu/rtx-5080-msrp",
       "imageUrl": "",
-      "inStock": true
+      "inStock": true,
+      "productId": "generic-rtx5080-standard-16gb"
     }
   ],
   "targetCaps": {

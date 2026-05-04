@@ -2,7 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { storeFetchers } = require('./stores');
-const { matchesKeywords, inPriceRange, extractModel, withinTargetCap, listingKey } = require('./utils');
+const { matchesKeywords, inPriceRange, enrichListing, withinTargetCap, listingKey } = require('./utils');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONFIG_FILE = path.join(ROOT, 'config.json');
@@ -12,7 +12,10 @@ const PORT = process.env.STOCK_DASHBOARD_PORT || 4388;
 let activeScan = null;
 
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
-function writeJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2)); }
+function writeJson(file, value) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(value, null, 2));
+}
 function send(res, code, body, type='application/json') { res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' }); res.end(type === 'application/json' ? JSON.stringify(body, null, 2) : body); }
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -49,14 +52,28 @@ function classifyError(error) {
 }
 
 function listingFromWatchItem(item) {
-  return {
+  return enrichListing({
     store: item.store || 'watchlist',
     title: item.title || item.url,
     price: Number(item.price),
     url: item.url,
     imageUrl: item.imageUrl || '',
     inStock: item.inStock !== false,
+    productId: item.productId || item.gpuId,
+    note: item.note || '' ,
     source: 'watchlist'
+  });
+}
+
+function summarizeListings(listings = []) {
+  const inStock = listings.filter(item => item.inStock).length;
+  const withinTarget = listings.filter(item => item.withinTarget !== false).length;
+  const cheapest = listings.slice().sort((a, b) => Number(a.price) - Number(b.price))[0] || null;
+  return {
+    total: listings.length,
+    inStock,
+    withinTarget,
+    cheapest
   };
 }
 
@@ -81,7 +98,6 @@ async function runScan() {
       const normalized = listingFromWatchItem(watchItem);
       if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
       if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
-      normalized.model = extractModel(normalized.title);
       normalized.withinTarget = withinTargetCap(normalized, config.targetCaps || {});
       nextListings.push(normalized);
       const key = listingKey(normalized);
@@ -118,16 +134,17 @@ async function runScan() {
         let matchedKeywords = 0;
         let matchedPrice = 0;
         let qualifying = 0;
+        let inStock = 0;
 
         for (const item of results) {
-          const normalized = { ...item, store: store.id };
+          const normalized = enrichListing({ ...item, store: store.id });
           if (!matchesKeywords(normalized.title, config.productKeywords)) continue;
           matchedKeywords += 1;
           if (!inPriceRange(normalized.price, config.minPrice, config.maxPrice)) continue;
           matchedPrice += 1;
-          normalized.model = extractModel(normalized.title);
           normalized.withinTarget = withinTargetCap(normalized, config.targetCaps || {});
           qualifying += 1;
+          if (normalized.inStock) inStock += 1;
           nextListings.push(normalized);
           const key = listingKey(normalized);
           if (normalized.inStock && !previousInStockKeys.has(key)) {
@@ -153,6 +170,7 @@ async function runScan() {
           matchedKeywords,
           matchedPrice,
           qualifying,
+          inStock,
           diagnosis,
           checkedAt: new Date().toISOString(),
           error: null,
@@ -172,6 +190,7 @@ async function runScan() {
           matchedKeywords: 0,
           matchedPrice: 0,
           qualifying: 0,
+          inStock: 0,
           diagnosis: classifyError(error),
           checkedAt: new Date().toISOString(),
           error: errorText,
@@ -186,15 +205,17 @@ async function runScan() {
       }
     }
   } finally {
+    const dedupedListings = Array.from(new Map(nextListings.map(item => [listingKey(item), item])).values());
     const nextState = {
-      stores: nextListings,
+      stores: dedupedListings,
+      summary: summarizeListings(dedupedListings),
       alerts: pruneAlerts([...(state.alerts || []), ...newAlerts]),
       lastScanAt: new Date().toISOString(),
       scanStartedAt: state.scanStartedAt,
       isScanning: false,
       storeStatus,
       soundConfig: (config.sounds || {}),
-      watchlist: config.watchlist || [],
+      watchlist: (config.watchlist || []).map(listingFromWatchItem),
       storeFailures
     };
     writeJson(STATE_FILE, nextState);
@@ -247,7 +268,8 @@ const server = http.createServer(async (req, res) => {
       },
       enabledStores: (config.stores || []).filter(store => store.enabled).map(store => store.id),
       listingCount: Array.isArray(state.stores) ? state.stores.length : 0,
-      alertCount: Array.isArray(state.alerts) ? state.alerts.length : 0
+      alertCount: Array.isArray(state.alerts) ? state.alerts.length : 0,
+      summary: state.summary || summarizeListings(state.stores || [])
     });
   }
   if (url.pathname === '/api/scan' && req.method === 'POST') {
@@ -257,19 +279,24 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/watchlist' && req.method === 'POST') {
     const raw = await readBody(req);
     const body = JSON.parse(raw || '{}');
-    if (!body.title || !body.url || !Number.isFinite(Number(body.price))) {
-      return send(res, 400, { error: 'title, url, and numeric price are required' });
+    const numericPrice = Number(body.price);
+    if (!body.title || !Number.isFinite(numericPrice) || !(body.productId || body.gpuId)) {
+      return send(res, 400, { error: 'title, numeric price, and productId are required' });
     }
     const config = readJson(CONFIG_FILE, {});
     const nextItem = {
       store: body.store || 'manual',
       title: String(body.title),
-      price: Number(body.price),
-      url: String(body.url),
+      price: numericPrice,
+      url: body.url ? String(body.url) : '',
       imageUrl: body.imageUrl ? String(body.imageUrl) : '',
-      inStock: body.inStock !== false
+      inStock: body.inStock !== false,
+      productId: String(body.productId || body.gpuId),
+      note: body.note ? String(body.note) : ''
     };
-    config.watchlist = [...(config.watchlist || []), nextItem];
+    const existing = new Map((config.watchlist || []).map(item => [String(item.productId || item.gpuId || ''), item]));
+    existing.set(nextItem.productId, nextItem);
+    config.watchlist = Array.from(existing.values());
     writeJson(CONFIG_FILE, config);
     return send(res, 201, { ok: true, item: nextItem, watchlistCount: config.watchlist.length });
   }

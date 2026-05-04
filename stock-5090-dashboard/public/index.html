@@ -3,22 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>5090 Stock Dashboard</title>
+  <title>GPU Hunter Dashboard</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <main class="wrap">
-    <header class="hero">
-      <div>
-        <h1>RTX 5090 Stock Dashboard</h1>
-        <p>Deterministic GPU watcher. No AI. Just signals, filters, and loud sounds when it matters.</p>
+    <header class="hero card card-hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Live GPU stock intelligence</div>
+        <h1>GPU Hunter Dashboard</h1>
+        <p>Fast signal, clearer tracking, better product identity. Built to surface real cards instead of duplicate noise.</p>
+        <div id="heroStats" class="hero-stats"></div>
       </div>
       <div class="hero-actions">
         <button id="scanBtn">Scan now</button>
       </div>
     </header>
 
-    <section class="grid summary-grid">
+    <section class="grid summary-grid tri-grid">
       <div class="card">
         <h2>Tracked models</h2>
         <div id="modelSummary"></div>
@@ -27,40 +29,59 @@
         <h2>Signal quality</h2>
         <div id="signalSummary"></div>
       </div>
-    </section>
-
-    <section class="grid">
       <div class="card">
-        <h2>Status</h2>
+        <h2>Scan overview</h2>
         <div id="status"></div>
       </div>
-      <div class="card">
-        <h2>Recent alerts</h2>
+    </section>
+
+    <section class="grid two-col-layout">
+      <div class="card accent-card">
+        <div class="section-heading">
+          <div>
+            <h2>Hot alerts</h2>
+            <p class="muted">Fresh in-stock transitions and parser failures worth caring about.</p>
+          </div>
+        </div>
         <div id="alerts"></div>
+      </div>
+
+      <div class="card accent-card">
+        <div class="section-heading">
+          <div>
+            <h2>Manual watchlist</h2>
+            <p class="muted">Track by stable GPU identifier instead of raw product URL.</p>
+          </div>
+        </div>
+        <form id="watchlistForm" class="watchlist-form">
+          <input id="watchTitle" type="text" placeholder="GPU title" />
+          <input id="watchProductId" type="text" placeholder="Graphics card unique identifier" />
+          <input id="watchPrice" type="number" step="0.01" placeholder="Price" />
+          <input id="watchUrl" type="url" placeholder="Optional product URL" />
+          <button type="submit">Add target</button>
+        </form>
+        <div id="watchlist"></div>
       </div>
     </section>
 
     <section class="card">
-      <h2>Watchlist</h2>
-      <p class="muted">Manual product targets you trust more than broad search scraping.</p>
-      <form id="watchlistForm" class="watchlist-form">
-        <input id="watchTitle" type="text" placeholder="GPU title" />
-        <input id="watchPrice" type="number" step="0.01" placeholder="Price" />
-        <input id="watchUrl" type="url" placeholder="Product URL" />
-        <button type="submit">Add target</button>
-      </form>
-      <div id="watchlist"></div>
+      <div class="section-heading">
+        <div>
+          <h2>Store checks</h2>
+          <p class="muted">Borrowing the best part of stronger trackers: make signal quality visible, not mysterious.</p>
+        </div>
+      </div>
+      <div id="storeStatus" class="store-grid"></div>
     </section>
 
     <section class="card">
-      <h2>Store checks</h2>
-      <p class="muted">This shows raw fetch/check results per store. "Seen 0" can mean no parser matches, no qualifying listings, or store-side changes.</p>
-      <div id="storeStatus"></div>
-    </section>
-
-    <section class="card">
-      <h2>Current qualifying listings</h2>
-      <div id="listings"></div>
+      <div class="section-heading">
+        <div>
+          <h2>Current qualifying listings</h2>
+          <p class="muted">Cards are grouped and deduped using stable identifiers so price changes do not create fake “new” products.</p>
+        </div>
+      </div>
+      <div id="listings" class="listing-grid"></div>
     </section>
 
     <audio id="bruhSound" preload="auto" src="/sounds/bruh.mp3"></audio>

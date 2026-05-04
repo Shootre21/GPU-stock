@@ -7,7 +7,14 @@
       "url": "https://example.com/gpu/rtx-4090-fe",
       "imageUrl": "",
       "inStock": true,
-      "source": "watchlist"
+      "productId": "nvidia-rtx4090-founders-edition-24gb",
+      "note": "",
+      "source": "watchlist",
+      "model": "4090",
+      "brand": "unknown",
+      "edition": "founders edition",
+      "memory": null,
+      "withinTarget": true
     },
     {
       "store": "manual",
@@ -16,9 +23,37 @@
       "url": "https://example.com/gpu/rtx-5080-msrp",
       "imageUrl": "",
       "inStock": true,
-      "source": "watchlist"
+      "productId": "generic-rtx5080-standard-16gb",
+      "note": "",
+      "source": "watchlist",
+      "model": "5080",
+      "brand": "unknown",
+      "edition": "standard",
+      "memory": null,
+      "withinTarget": true
     }
   ],
+  "summary": {
+    "total": 2,
+    "inStock": 2,
+    "withinTarget": 2,
+    "cheapest": {
+      "store": "manual",
+      "title": "RTX 5080 MSRP Target Placeholder",
+      "price": 999,
+      "url": "https://example.com/gpu/rtx-5080-msrp",
+      "imageUrl": "",
+      "inStock": true,
+      "productId": "generic-rtx5080-standard-16gb",
+      "note": "",
+      "source": "watchlist",
+      "model": "5080",
+      "brand": "unknown",
+      "edition": "standard",
+      "memory": null,
+      "withinTarget": true
+    }
+  },
   "alerts": [
     {
       "at": "2026-04-24T14:57:16.350Z",
@@ -33,19 +68,13 @@
       "error": "TypeError: fetch failed"
     },
     {
-      "at": "2026-04-24T20:15:06.359Z",
+      "at": "2026-04-29T09:40:14.651Z",
       "type": "store_error",
       "store": "newegg",
       "error": "TypeError: fetch failed"
     },
     {
-      "at": "2026-04-28T04:05:15.245Z",
-      "type": "store_error",
-      "store": "walmart",
-      "error": "TypeError: fetch failed"
-    },
-    {
-      "at": "2026-04-28T21:53:45.729Z",
+      "at": "2026-05-04T17:55:22.676Z",
       "type": "new_in_stock",
       "listing": {
         "store": "manual",
@@ -54,12 +83,19 @@
         "url": "https://example.com/gpu/rtx-4090-fe",
         "imageUrl": "",
         "inStock": true,
-        "source": "watchlist"
+        "productId": "nvidia-rtx4090-founders-edition-24gb",
+        "note": "",
+        "source": "watchlist",
+        "model": "4090",
+        "brand": "unknown",
+        "edition": "founders edition",
+        "memory": null,
+        "withinTarget": true
       },
       "sound": "BRUH_OR_FAHHH"
     },
     {
-      "at": "2026-04-28T21:53:45.729Z",
+      "at": "2026-05-04T17:55:22.676Z",
       "type": "new_in_stock",
       "listing": {
         "store": "manual",
@@ -68,15 +104,43 @@
         "url": "https://example.com/gpu/rtx-5080-msrp",
         "imageUrl": "",
         "inStock": true,
-        "source": "watchlist"
+        "productId": "generic-rtx5080-standard-16gb",
+        "note": "",
+        "source": "watchlist",
+        "model": "5080",
+        "brand": "unknown",
+        "edition": "standard",
+        "memory": null,
+        "withinTarget": true
       },
       "sound": "BRUH_OR_FAHHH"
+    },
+    {
+      "at": "2026-05-04T17:55:23.291Z",
+      "type": "store_error",
+      "store": "walmart",
+      "error": "Error: walmart_http_412"
     }
   ],
-  "lastScanAt": "2026-04-28T21:53:45.729Z",
-  "scanStartedAt": "2026-04-28T21:53:45.728Z",
+  "lastScanAt": "2026-05-04T17:55:23.292Z",
+  "scanStartedAt": "2026-05-04T17:55:22.672Z",
   "isScanning": false,
-  "storeStatus": [],
+  "storeStatus": [
+    {
+      "store": "walmart",
+      "ok": false,
+      "seen": 0,
+      "matchedKeywords": 0,
+      "matchedPrice": 0,
+      "qualifying": 0,
+      "inStock": 0,
+      "diagnosis": "store_error",
+      "checkedAt": "2026-05-04T17:55:23.291Z",
+      "error": "Error: walmart_http_412",
+      "consecutiveFailures": 1,
+      "cooldownUntil": null
+    }
+  ],
   "soundConfig": {
     "bruh": "/sounds/bruh.mp3",
     "fahhhh": "/sounds/fahhhh.mp3"
@@ -88,7 +152,14 @@
       "price": 1599,
       "url": "https://example.com/gpu/rtx-4090-fe",
       "imageUrl": "",
-      "inStock": true
+      "inStock": true,
+      "productId": "nvidia-rtx4090-founders-edition-24gb",
+      "note": "",
+      "source": "watchlist",
+      "model": "4090",
+      "brand": "unknown",
+      "edition": "founders edition",
+      "memory": null
     },
     {
       "store": "manual",
@@ -96,8 +167,22 @@
       "price": 999,
       "url": "https://example.com/gpu/rtx-5080-msrp",
       "imageUrl": "",
-      "inStock": true
+      "inStock": true,
+      "productId": "generic-rtx5080-standard-16gb",
+      "note": "",
+      "source": "watchlist",
+      "model": "5080",
+      "brand": "unknown",
+      "edition": "standard",
+      "memory": null
     }
   ],
-  "storeFailures": {}
+  "storeFailures": {
+    "walmart": {
+      "consecutiveFailures": 1,
+      "cooldownUntil": null,
+      "lastError": "Error: walmart_http_412",
+      "lastFailureAt": "2026-05-04T17:55:23.291Z"
+    }
+  }
 }
