@@ -277,6 +277,7 @@ async function runScan(options = {}) {
         const adapterResult = await adapter(store, config);
         const results = Array.isArray(adapterResult?.listings) ? adapterResult.listings : [];
         const adapterStatus = adapterResult?.status || {};
+        const previousStoreListings = previousListings.filter(item => item.store === store.id);
         let matchedKeywords = 0;
         let matchedProductType = 0;
         let matchedCondition = 0;
@@ -300,6 +301,20 @@ async function runScan(options = {}) {
           qualifying += 1;
           if (normalized.inStock) inStock += 1;
           nextListings.push(normalized);
+        }
+
+        let preservedListings = 0;
+        if (adapterStatus.ok === false && previousStoreListings.length) {
+          const checkedAt = adapterStatus.checkedAt || new Date().toISOString();
+          for (const item of previousStoreListings) {
+            nextListings.push({
+              ...item,
+              stale: true,
+              staleReason: adapterStatus.diagnosis || 'store_unavailable',
+              checkedAt: item.checkedAt || checkedAt
+            });
+            preservedListings += 1;
+          }
         }
 
         const filterDiagnosis = results.length === 0
@@ -336,7 +351,8 @@ async function runScan(options = {}) {
           error: adapterStatus.error || null,
           url: adapterStatus.url || null,
           consecutiveFailures: 0,
-          cooldownUntil: null
+          cooldownUntil: null,
+          preservedListings
         });
       } catch (error) {
         const errorText = String(error);

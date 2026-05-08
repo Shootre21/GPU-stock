@@ -28,10 +28,11 @@ function storeQueries(storeConfig = {}, fallback = 'rtx 5090') {
 function combineStatuses(storeConfig, statuses = [], listings = [], source = 'public_page') {
   const blocked = statuses.filter(status => status && status.ok === false);
   const okStatuses = statuses.filter(status => status && status.ok !== false);
+  const unique = values => Array.from(new Set(values.filter(Boolean)));
   const diagnosis = listings.length
     ? 'public_live_listings_found'
     : blocked.length
-      ? blocked.map(status => status.diagnosis).join('; ')
+      ? unique(blocked.map(status => status.diagnosis)).join('; ')
       : 'parser_no_match_or_no_results';
   return makeStatus(storeConfig, {
     ok: listings.length > 0 || (okStatuses.length > 0 && blocked.length === 0),
@@ -40,8 +41,8 @@ function combineStatuses(storeConfig, statuses = [], listings = [], source = 'pu
     listingCount: listings.length,
     inStock: listings.filter(item => item.inStock).length,
     diagnosis,
-    error: blocked.map(status => status.error).filter(Boolean).join('; ') || null,
-    url: statuses.map(status => status.url).filter(Boolean).join(', ')
+    error: unique(blocked.map(status => status.error)).join('; ') || null,
+    url: unique(statuses.map(status => status.url)).join(', ')
   });
 }
 
@@ -922,6 +923,48 @@ async function fetchEbayPublicUrl(storeConfig = {}, config = {}, url, source) {
   });
 }
 
+function amazonResultChunks(text = '') {
+  const starts = [...String(text).matchAll(/<div[^>]+(?:data-component-type="s-search-result"[^>]+data-asin="([A-Z0-9]{10})"|data-asin="([A-Z0-9]{10})"[^>]+data-component-type="s-search-result")[^>]*>/gi)]
+    .map(match => ({ asin: match[1] || match[2], index: match.index }))
+    .filter(match => match.asin && Number.isFinite(match.index));
+
+  if (!starts.length) {
+    return [...String(text).matchAll(/<div[^>]+data-asin="([A-Z0-9]{10})"[^>]*>([\s\S]*?)(?=<div[^>]+data-asin="[A-Z0-9]{10}"|$)/gi)]
+      .map(match => ({ asin: match[1], html: match[2] }));
+  }
+
+  return starts.map((start, index) => ({
+    asin: start.asin,
+    html: String(text).slice(start.index, starts[index + 1]?.index || String(text).length)
+  }));
+}
+
+function parseAmazonTitle(chunk = '') {
+  return stripTags(
+    (chunk.match(/<h2[^>]+aria-label="([^"]+)"/i) || [])[1] ||
+    (chunk.match(/<h2[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>[\s\S]*?<\/h2>/i) || [])[1] ||
+    (chunk.match(/<span[^>]+class="[^"]*a-text-normal[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] ||
+    (chunk.match(/<img[^>]+alt="([^"]+)"/i) || [])[1] ||
+    ''
+  );
+}
+
+function parseAmazonPrice(chunk = '') {
+  const offscreen = stripTags((chunk.match(/<span[^>]+class="[^"]*a-offscreen[^"]*"[^>]*>([\s\S]*?\$[\s\S]*?)<\/span>/i) || [])[1] || '');
+  if (offscreen) return offscreen;
+  const whole = stripTags((chunk.match(/<span[^>]+class="[^"]*a-price-whole[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] || '');
+  if (!whole) return '';
+  const fraction = stripTags((chunk.match(/<span[^>]+class="[^"]*a-price-fraction[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] || '00');
+  return `${whole}.${fraction}`;
+}
+
+function parseAmazonProductPath(chunk = '', asin = '') {
+  const asinPath = asin
+    ? (chunk.match(new RegExp(`href="([^"]*\\/(?:dp|gp\\/product)\\/${asin}[^"]*)"`, 'i')) || [])[1]
+    : '';
+  return asinPath || (chunk.match(/href="([^"]*\/(?:dp|gp\/product)\/[A-Z0-9]{10}[^"]*)"/i) || [])[1] || '';
+}
+
 async function fetchAmazon(storeConfig = {}, config = {}) {
   const queries = storeQueries(storeConfig);
   if (!storeConfig._singleQuery && queries.length > 1) {
@@ -941,20 +984,18 @@ async function fetchAmazon(storeConfig = {}, config = {}) {
   const fetched = await fetchPublicHtml(storeConfig, config, url);
   if (fetched.blocked) return { listings: [], status: fetched.status };
   const items = [];
-  const chunks = [...fetched.text.matchAll(/<div[^>]+data-asin="([A-Z0-9]{10})"[^>]*>([\s\S]*?)(?=<div[^>]+data-asin="[A-Z0-9]{10}"|$)/gi)]
-    .map(match => ({ asin: match[1], html: match[2] }));
+  const chunks = amazonResultChunks(fetched.text);
 
   for (const { asin, html: chunk } of chunks.slice(0, 30)) {
-    const title = stripTags((chunk.match(/<h2[\s\S]*?<\/h2>/i) || [])[0] || (chunk.match(/<span[^>]+class="[^"]*a-text-normal[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] || '');
-    const whole = stripTags((chunk.match(/<span[^>]+class="[^"]*a-price-whole[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] || '');
-    const fraction = stripTags((chunk.match(/<span[^>]+class="[^"]*a-price-fraction[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] || '00');
-    const imageUrl = (chunk.match(/data-image-src="([^"]+)"/i) || chunk.match(/<img[^>]+src="([^"]+)"/i) || [])[1];
-    const productPath = (chunk.match(/<a[^>]+class="[^"]*a-link-normal[^"]*"[^>]+href="([^"]*\/dp\/[^"]+)"/i) || [])[1];
+    const title = parseAmazonTitle(chunk);
+    const price = parseAmazonPrice(chunk);
+    const imageUrl = (chunk.match(/data-image-src="([^"]+)"/i) || chunk.match(/<img[^>]+(?:src|data-src)="([^"]+)"/i) || [])[1];
+    const productPath = parseAmazonProductPath(chunk, asin);
     const availability = availabilityFromText(chunk);
-    if (!asin || !title || !whole) continue;
+    if (!asin || !title || !price) continue;
     items.push({
       title,
-      price: `${whole}.${fraction}`,
+      price,
       url: productPath ? absoluteUrl('https://www.amazon.com', productPath) : `https://www.amazon.com/dp/${asin}`,
       imageUrl,
       inStock: availability === true,
