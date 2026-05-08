@@ -26,9 +26,25 @@ function inPriceRange(price, minPrice, maxPrice) {
   return true;
 }
 
+function isStandaloneGpuProduct(title = '') {
+  const text = normalizeText(title);
+  const hasTargetModel = /\b(3090|4080|4090|5090)\b/.test(text);
+  const hasGpuLanguage = /\b(graphics card|graphic card|video card|gpu|geforce rtx|nvidia geforce rtx)\b/.test(text);
+  const systemLanguage = /\b(prebuilt|gaming desktop|desktop pc|laptop|notebook|workstation|server|mini pc|computer)\b/.test(text);
+  const componentBundleLanguage = /\b(ryzen|intel core|core ultra|ddr5 ram|ddr4 ram|\bram\b|nvme|ssd|windows 11|keyboard|mouse|rj45|wifi 7|wi fi 7)\b/.test(text);
+  const externalLanguage = /\b(external gpu|egpu|ai box)\b/.test(text);
+  const accessoryBundle = /\b(bundle with|bundled with|dockstation|backpack)\b/.test(text);
+  return hasTargetModel && hasGpuLanguage && !systemLanguage && !componentBundleLanguage && !externalLanguage && !accessoryBundle;
+}
+
+function isNewRetailCondition(title = '') {
+  const text = normalizeText(title);
+  return !/\b(refurbished|renewed|used|open box|openbox|pre owned|preowned)\b/.test(text);
+}
+
 function extractModel(title = '') {
   const text = normalizeText(title);
-  const models = ['3090', '4080', '4090', '5080', '5090'];
+  const models = ['3090', '4080', '4090', '5090'];
   return models.find(model => text.includes(model)) || null;
 }
 
@@ -66,6 +82,56 @@ function extractMemory(title = '') {
   return match ? `${match[1]}gb` : null;
 }
 
+function tidyTitle(value = '') {
+  return String(value)
+    .replace(/[®™]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,;:])/g, '$1')
+    .trim();
+}
+
+function compactGpuTitle(title = '') {
+  const cleaned = tidyTitle(title)
+    .replace(/\bNVIDIA\s+GeForce\s+RTX\b/gi, 'GeForce RTX')
+    .replace(/\bGraphics\s+Cards\b/gi, 'Graphics Card')
+    .replace(/\bGraphic\s+Card\b/gi, 'Graphics Card');
+
+  const hardStops = [
+    /\s+-\s+Powered by\b/i,
+    /\s+-\s+Compatible\b/i,
+    /\s+-\s+AI\b/i,
+    /\s+-\s+DLSS\b/i,
+    /\s+-\s+HDMI\b/i,
+    /\s+-\s+DisplayPort\b/i,
+    /\s+Bundle with\b/i,
+    /\s+Bundled with\b/i,
+    /\s+with GPU holder\b/i,
+    /\s+with support bracket\b/i
+  ];
+  let base = cleaned;
+  for (const stop of hardStops) {
+    const match = base.search(stop);
+    if (match > 0) base = base.slice(0, match).trim();
+  }
+
+  const commaParts = base.split(',').map(part => tidyTitle(part)).filter(Boolean);
+  if (commaParts.length > 1) {
+    const keep = [commaParts[0]];
+    for (const part of commaParts.slice(1)) {
+      if (/\b(\d{2,3}\s*GB|GDDR\d|DDR\d|GDDR|PCI[-\s]?E|PCI\s*Express|\d{3,4}\s*bit|\d{3,5}\s*MHz|Graphics Card)\b/i.test(part)) {
+        keep.push(part);
+      }
+    }
+    base = keep.slice(0, 6).join(', ');
+  }
+
+  const words = base.split(/\s+/);
+  if (words.length <= 22) return base;
+  const modelIndex = words.findIndex(word => /\b(?:3090|4080|4090|5090)\b/i.test(word));
+  const limit = modelIndex >= 0 ? Math.max(18, modelIndex + 10) : 18;
+  return words.slice(0, limit).join(' ');
+}
+
 function createListingId(listing = {}) {
   if (listing.productId) return String(listing.productId);
   const model = listing.model || extractModel(listing.title) || 'gpu';
@@ -86,6 +152,16 @@ function withinTargetCap(listing, targetCaps = {}) {
   return Number(listing.price) <= cap;
 }
 
+function isMsrpHit(listing = {}, msrpTargets = {}) {
+  const model = listing.model || extractModel(listing.title);
+  const target = Number(msrpTargets[model]);
+  if (!model || !Number.isFinite(target)) return false;
+  const price = Number(listing.price);
+  if (!Number.isFinite(price)) return false;
+  const tolerance = Math.max(Number(msrpTargets.tolerance || 0), 0);
+  return Math.abs(price - target) <= tolerance;
+}
+
 function enrichListing(listing = {}) {
   const title = String(listing.title || 'Unknown GPU');
   const model = listing.model || extractModel(title);
@@ -93,14 +169,19 @@ function enrichListing(listing = {}) {
   const edition = listing.edition || extractEdition(title);
   const memory = listing.memory || extractMemory(title);
   const price = Number(listing.price);
+  const displayTitle = compactGpuTitle(title);
+  const msrpHit = Boolean(listing.msrpHit);
   return {
     ...listing,
     title,
+    displayTitle,
+    feedLabel: `${listing.store || 'store'} - ${displayTitle}`,
     price,
     model,
     brand,
     edition,
     memory,
+    msrpHit,
     productId: createListingId({ ...listing, title, model, brand, edition, memory })
   };
 }
@@ -115,12 +196,16 @@ module.exports = {
   slugify,
   matchesKeywords,
   inPriceRange,
+  isStandaloneGpuProduct,
+  isNewRetailCondition,
   extractModel,
   extractBrand,
   extractEdition,
   extractMemory,
+  compactGpuTitle,
   createListingId,
   enrichListing,
   withinTargetCap,
+  isMsrpHit,
   listingKey
 };

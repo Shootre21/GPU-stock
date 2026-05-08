@@ -10,6 +10,10 @@ GPU stock tracker focused on cleaner signal, stronger deduping, and a better das
 - Surface better status cards and clearer store diagnostics
 - Refresh the UI to feel more like modern public tracker sites
 - Improve Best Buy / Newegg / Walmart extraction so parsers are less brittle
+- Run automatic-only collection from enabled store adapters. Manual product input is disabled.
+- Explain anti-bot and blocking states as diagnostics with cooldown/backoff, not bypass logic.
+- Use public page parsing only. No store APIs, API keys, OAuth, PA-API, or credentialed stock endpoints.
+- Run as a polite watcher: identifiable user agent, robots.txt checks, serial store scans, request delay, and cooldowns.
 
 ## Competitive notes
 
@@ -35,23 +39,23 @@ Place your custom sounds in:
 
 Sound paths are configured in `config.json`.
 
-## API
+## Local Dashboard Endpoints
 
 - `GET /api/state` — current normalized listings, alerts, summary, and store diagnostics
 - `POST /api/scan` — trigger a scan immediately
 - `GET /api/health` — lightweight health / scan status endpoint
-- `POST /api/watchlist` — add or replace a manual tracked GPU target by `productId`
+- `POST /api/watchlist` — disabled with `410 manual_watchlist_disabled`
+- `DELETE /api/watchlist/:productId` — disabled with `410 manual_watchlist_disabled`
 
-### Watchlist payload
+## Automatic collection
 
-```json
-{
-  "title": "ASUS TUF RTX 5090",
-  "productId": "asus-rtx5090-tuf-32gb",
-  "price": 2299.99,
-  "url": "https://example.com/product-page"
-}
-```
+Change enabled stores, queries, and timeouts in `config.json`. The app does not accept manual GPU listings in the UI; all listings must come from public store pages parsed by enabled adapters.
+
+Automatic polling is enabled at a conservative 5-minute interval. Scans run serially, keep the per-store delay, and skip overlapping runs if a previous scan is still active.
+
+## Watcher logic
+
+See `docs/watcher-state-machine.md` for the public-page watcher state machine, alert logic, and anti-bot diagnostics policy. The watcher records blocks, queues, captcha pages, rate limits, and parser changes, then backs off instead of bypassing protections.
 
 ## Docker
 

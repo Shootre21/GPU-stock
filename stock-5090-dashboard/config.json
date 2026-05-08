@@ -1,42 +1,37 @@
 {
   "minPrice": 400,
-  "maxPrice": 2600,
-  "pollIntervalMs": 90000,
+  "maxPrice": 6000,
+  "pollIntervalMs": 300000,
+  "schedulerTickMs": 30000,
   "storeTimeoutMs": 15000,
+  "storeRequestDelayMs": 3000,
+  "minStoreRequestDelayMs": 3000,
+  "maxAutoStoresPerTick": 1,
+  "queryDelayMs": 1000,
+  "respectRobotsTxt": true,
+  "goodBot": {
+    "userAgent": "GPUHunterWatcher/1.0 (+local personal stock alert; no purchase automation)"
+  },
   "storeFailureBackoffThreshold": 3,
   "storeFailureCooldownMs": 300000,
   "autoStartScan": false,
-  "autoPolling": false,
+  "autoPolling": true,
+  "zipCode": "90210",
+  "fixedPriceOnly": true,
   "sounds": {
     "bruh": "/sounds/bruh.mp3",
     "fahhhh": "/sounds/fahhhh.mp3"
   },
-  "watchlist": [
-    {
-      "store": "manual",
-      "title": "RTX 4090 Founders Edition Placeholder",
-      "price": 1599,
-      "url": "https://example.com/gpu/rtx-4090-fe",
-      "imageUrl": "",
-      "inStock": true,
-      "productId": "nvidia-rtx4090-founders-edition-24gb"
-    },
-    {
-      "store": "manual",
-      "title": "RTX 5080 MSRP Target Placeholder",
-      "price": 999,
-      "url": "https://example.com/gpu/rtx-5080-msrp",
-      "imageUrl": "",
-      "inStock": true,
-      "productId": "generic-rtx5080-standard-16gb"
-    }
-  ],
+  "watchlist": [],
   "targetCaps": {
     "3090": 900,
     "4080": 1100,
     "4090": 1800,
-    "5080": 1200,
     "5090": 2200
+  },
+  "msrpTargets": {
+    "5090": 1999,
+    "tolerance": 1
   },
   "productKeywords": [
     "3090",
@@ -48,19 +43,177 @@
     "4090",
     "rtx 4090",
     "geforce rtx 4090",
-    "5080",
-    "rtx 5080",
-    "geforce rtx 5080",
     "5090",
     "rtx 5090",
     "geforce rtx 5090"
   ],
   "stores": [
-    { "id": "bestbuy", "enabled": false },
-    { "id": "newegg", "enabled": false },
-    { "id": "bhphoto", "enabled": false },
-    { "id": "microcenter", "enabled": false },
-    { "id": "amazon", "enabled": false },
-    { "id": "walmart", "enabled": true }
+    {
+      "id": "bestbuy",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "ignoreMaxPrice": true,
+      "pollIntervalMs": 300000,
+      "queries": [
+        "rtx 3090 graphics card",
+        "rtx 4080 graphics card",
+        "rtx 4090 graphics card",
+        "rtx 5090 graphics card"
+      ]
+    },
+    {
+      "id": "walmart",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "pollIntervalMs": 900000,
+      "timeoutMs": 10000,
+      "maxUrlsPerCheck": 6,
+      "urlsOnly": true,
+      "urls": [
+        "https://www.walmart.com/ip/222429968",
+        "https://www.walmart.com/ip/221044346",
+        "https://www.walmart.com/ip/1952905981",
+        "https://www.walmart.com/ip/2221166540",
+        "https://www.walmart.com/ip/1791608981",
+        "https://www.walmart.com/ip/1503397894",
+        "https://www.walmart.com/ip/1646179187",
+        "https://www.walmart.com/ip/15176552726",
+        "https://www.walmart.com/ip/15382712946",
+        "https://www.walmart.com/ip/15429800604",
+        "https://www.walmart.com/ip/15046623228"
+      ],
+      "queries": [
+        "rtx 3090 graphics card",
+        "rtx 4080 graphics card",
+        "rtx 4090 graphics card",
+        "rtx 5090 graphics card"
+      ]
+    },
+    {
+      "id": "amd",
+      "enabled": true,
+      "strategy": "public_page",
+      "query": "radeon graphics card",
+      "pollIntervalMs": 1800000,
+      "urls": [
+        "https://www.amd.com/en/products/graphics/desktops/radeon.html"
+      ]
+    },
+    {
+      "id": "newegg",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "pollIntervalMs": 300000,
+      "queries": [
+        "rtx 3090 graphics card",
+        "rtx 4080 graphics card",
+        "rtx 4090 graphics card",
+        "rtx 5090 graphics card"
+      ]
+    },
+    {
+      "id": "ebay",
+      "enabled": true,
+      "strategy": "public_page",
+      "pollIntervalMs": 900000,
+      "queries": [
+        "rtx 3090 gpu",
+        "rtx 4080 gpu",
+        "rtx 4090 gpu",
+        "rtx 5090 gpu"
+      ],
+      "categoryUrls": [
+        "https://www.ebay.com/b/Graphics-Video-Cards/27386/bn_661796?mkcid=2"
+      ]
+    },
+    {
+      "id": "amazon",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "pollIntervalMs": 420000,
+      "queries": [
+        "rtx 3090 gpu",
+        "rtx 4080 gpu",
+        "rtx 4090 gpu",
+        "rtx 5090 gpu"
+      ]
+    },
+    {
+      "id": "bhphoto",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "pollIntervalMs": 900000,
+      "urls": [
+        "https://www.bhphotovideo.com/c/buy/rtx-3090/ci/48453",
+        "https://www.bhphotovideo.com/c/product/1771702-REG/asus_proart_rtx4080_16g_proart_geforce_rtx_4080.html",
+        "https://www.bhphotovideo.com/c/product/1750958-REG/pny_vcg409024tfxpb1_geforce_rtx_4090_24gb.html",
+        "https://www.bhphotovideo.com/c/buy/rtx-5090/ci/60217"
+      ]
+    },
+    {
+      "id": "antonline",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "pollIntervalMs": 900000,
+      "timeoutMs": 8000,
+      "maxUrlsPerCheck": 3,
+      "queries": [
+        "rtx 3090 graphics card",
+        "rtx 4080 graphics card",
+        "rtx 4090 graphics card",
+        "rtx 5090 graphics card"
+      ],
+      "urls": [
+        "https://www.antonline.com/MSI/Computers/Video_Cards/Graphic_Cards/1461934",
+        "https://www.antonline.com/Gigabyte/Computers/Video_Cards/Graphic_Cards/1518818",
+        "https://www.antonline.com/Gigabyte/Computers/Video_Cards/Graphic_Cards/1518819",
+        "https://www.antonline.com/Gigabyte/Computers/Video_Cards/Graphic_Cards/1518817",
+        "https://www.antonline.com/MSI/Computers/Video_Cards/Graphic_Cards/1518852",
+        "https://www.antonline.com/Gigabyte/Computers/Video_Cards/Graphic_Cards/1518863"
+      ]
+    },
+    {
+      "id": "asus",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "ignoreMaxPrice": true,
+      "pollIntervalMs": 900000,
+      "queries": [
+        "rtx 3090 graphics card",
+        "rtx 4080 graphics card",
+        "rtx 4090 graphics card",
+        "rtx 5090 graphics card"
+      ],
+      "urls": [
+        "https://shop.asus.com/us/catalogsearch/result/?q=rtx%203090",
+        "https://shop.asus.com/us/catalogsearch/result/?q=rtx%204080",
+        "https://shop.asus.com/us/catalogsearch/result/?q=rtx%204090",
+        "https://shop.asus.com/us/catalogsearch/result/?q=rtx%205090"
+      ]
+    },
+    {
+      "id": "msi",
+      "enabled": true,
+      "strategy": "public_page",
+      "condition": "new",
+      "ignoreMaxPrice": true,
+      "pollIntervalMs": 900000,
+      "timeoutMs": 10000,
+      "maxUrlsPerCheck": 5,
+      "urls": [
+        "https://us-store.msi.com/index.php?route=product/search&search=rtx%203090",
+        "https://us-store.msi.com/index.php?route=product/search&search=rtx%204080",
+        "https://us-store.msi.com/index.php?route=product/search&search=rtx%204090",
+        "https://us-store.msi.com/index.php?route=product/search&search=rtx%205090",
+        "https://us-store.msi.com/Graphics-Cards/NVIDIA-GPU"
+      ]
+    }
   ]
 }
