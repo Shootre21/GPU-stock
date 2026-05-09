@@ -395,6 +395,33 @@ function publicHtmlChunks(text, splitPattern, endPattern) {
   });
 }
 
+function attrFromTag(tag = '', name = '') {
+  const match = String(tag).match(new RegExp(`${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'));
+  return decodeEscapes(match?.[1] || match?.[2] || match?.[3] || '');
+}
+
+function metaContent(text = '', names = []) {
+  const wanted = new Set(names.map(name => String(name).toLowerCase()));
+  for (const match of String(text).matchAll(/<meta\b[^>]*>/gi)) {
+    const tag = match[0];
+    const key = (attrFromTag(tag, 'property') || attrFromTag(tag, 'name') || attrFromTag(tag, 'itemprop')).toLowerCase();
+    if (!wanted.has(key)) continue;
+    const content = attrFromTag(tag, 'content');
+    if (content) return content;
+  }
+  return '';
+}
+
+function canonicalHref(text = '', baseUrl = '') {
+  for (const match of String(text).matchAll(/<link\b[^>]*>/gi)) {
+    const tag = match[0];
+    if (!/\bcanonical\b/i.test(attrFromTag(tag, 'rel'))) continue;
+    const href = attrFromTag(tag, 'href');
+    if (href) return absoluteUrl(baseUrl, href);
+  }
+  return '';
+}
+
 async function fetchPublicHtml(storeConfig, config, url) {
   const timeoutMs = storeConfig.timeoutMs || config.storeTimeoutMs || 15000;
   const robots = await checkRobotsAllowed(url, storeConfig, config);
@@ -839,6 +866,27 @@ async function fetchAmd(storeConfig = {}, config = {}) {
 }
 
 async function fetchEbay(storeConfig = {}, config = {}) {
+  const productUrls = Array.isArray(storeConfig.urls) ? storeConfig.urls : [];
+  if (!storeConfig._singleProductUrl && productUrls.length) {
+    const listings = [];
+    const statuses = [];
+    const maxUrls = Math.min(Math.max(Number(storeConfig.maxUrlsPerCheck || 4), 1), 8);
+    for (const productUrl of productUrls.slice(0, maxUrls)) {
+      if (statuses.length) await politeQueryDelay(storeConfig, config);
+      const result = await fetchEbayPublicUrl({ ...storeConfig, _singleProductUrl: true }, config, productUrl, 'ebay_public_product_page');
+      listings.push(...result.listings);
+      statuses.push(result.status);
+    }
+    const deduped = dedupeListings(listings);
+    if (deduped.length || storeConfig.productOnly || storeConfig.urlsOnly) {
+      return { listings: deduped, status: combineStatuses(storeConfig, statuses, deduped, 'ebay_public_product_page') };
+    }
+  }
+
+  if (storeConfig.productOnly || storeConfig.urlsOnly) {
+    return { listings: [], status: makeStatus(storeConfig, { ok: false, source: 'ebay_public_product_page', diagnosis: 'missing_configured_product_urls' }) };
+  }
+
   const queries = storeQueries(storeConfig);
   if (!storeConfig._singleQuery && queries.length > 1) {
     const listings = [];
@@ -913,6 +961,19 @@ async function fetchEbayPublicUrl(storeConfig = {}, config = {}, url, source) {
       source,
       rawAvailability: 'fixed_price_public_listing'
     });
+  }
+
+  if (!items.length && /\/itm\//i.test(url)) {
+    const itemId = (decodeEscapes(url).match(/\/itm\/(?:[^/]+\/)?(\d+)/i) || [])[1];
+    const genericItems = parseGenericPublicProducts(storeConfig, fetched.text, url);
+    for (const item of genericItems.slice(0, 4)) {
+      items.push({
+        ...item,
+        source,
+        productId: itemId ? `ebay-${itemId}` : item.productId,
+        rawAvailability: item.rawAvailability || 'product_page_public_listing'
+      });
+    }
   }
 
   return adapterResult(storeConfig, items, {
@@ -1126,6 +1187,42 @@ function parseGenericPublicProducts(storeConfig = {}, text = '', baseUrl = '') {
         });
       }
     } catch {}
+  }
+
+  if (!items.length) {
+    const title = stripTags(
+      metaContent(text, ['og:title', 'twitter:title', 'title']) ||
+      (String(text).match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] ||
+      ''
+    );
+    const price = metaContent(text, [
+      'product:price:amount',
+      'og:price:amount',
+      'price',
+      'twitter:data1'
+    ]) ||
+      (String(text).match(/\bdata-price-amount=["']?(\d+(?:\.\d+)?)/i) || [])[1] ||
+      (String(text).match(/"price"\s*:\s*"?(\d+(?:\.\d+)?)/i) || [])[1] ||
+      (String(text).match(/(\$\s*[\d,]+(?:\.\d{2})?)/i) || [])[1] ||
+      '';
+    if (title && /\b(?:RTX|GeForce)\b/i.test(title) && Number.isFinite(parseMoney(price))) {
+      const productUrl = metaContent(text, ['og:url']) || canonicalHref(text, baseUrl) || baseUrl;
+      const availabilityText = metaContent(text, ['product:availability', 'og:availability', 'availability']) || String(text).slice(0, 12000);
+      const availability = availabilityFromText(availabilityText);
+      const imageUrl = metaContent(text, ['og:image', 'twitter:image']);
+      const sku = metaContent(text, ['product:retailer_item_id', 'product:retailer_part_no', 'sku']) ||
+        (String(text).match(/\b(?:sku|mpn)["'\s:=>]+([A-Z0-9._-]{4,})/i) || [])[1];
+      items.push({
+        title,
+        price,
+        url: absoluteUrl(baseUrl, productUrl),
+        imageUrl,
+        inStock: availability === true,
+        productId: sku ? `${storeConfig.id}-${sku}` : `${storeConfig.id}-${absoluteUrl(baseUrl, productUrl).split('/').filter(Boolean).pop()}`,
+        source: `${storeConfig.id}_public_meta`,
+        rawAvailability: availability === null ? 'product_page_availability_unknown' : availabilityLabel(availability)
+      });
+    }
   }
 
   if (!items.length) {

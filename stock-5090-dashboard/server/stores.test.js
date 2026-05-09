@@ -167,6 +167,55 @@ async function testEbayPublicFixture() {
   });
 }
 
+async function testEbayProductPageFixture() {
+  const html = [
+    '<html><head>',
+    '<meta property="og:title" content="NVIDIA GeForce RTX 4090 24GB Graphics Card">',
+    '<meta property="og:url" content="https://www.ebay.com/itm/409040904090">',
+    '<meta property="og:image" content="https://i.ebayimg.com/4090.jpg">',
+    '<meta property="product:price:amount" content="1800.00">',
+    '<meta property="product:availability" content="in stock">',
+    '</head><body>Buy It Now</body></html>'
+  ].join('');
+  clearRobotsCache();
+  await withFetch(async url => String(url).endsWith('/robots.txt') ? response({ text: 'User-agent: *\nAllow: /itm/' }) : response({ text: html }), async () => {
+    const result = await storeAdapters.ebay({
+      id: 'ebay',
+      strategy: 'public_page',
+      urls: ['https://www.ebay.com/itm/409040904090'],
+      productOnly: true
+    }, { storeTimeoutMs: 100 });
+    assert.equal(result.status.source, 'ebay_public_product_page');
+    assert.equal(result.listings.length, 1);
+    assert.equal(result.listings[0].productId, 'ebay-409040904090');
+    assert.equal(result.listings[0].inStock, true);
+  });
+}
+
+async function testAsusProductMetaFixture() {
+  const html = [
+    '<html><head>',
+    '<title>ASUS ROG Astral GeForce RTX 5090 OC Edition Graphics Card</title>',
+    '<link rel="canonical" href="https://shop.asus.com/us/rog-astral-rtx5090-o32g-gaming.html">',
+    '<meta property="og:image" content="https://shop.asus.com/media/5090.jpg">',
+    '<meta property="product:price:amount" content="1999.99">',
+    '<meta name="sku" content="ROG-ASTRAL-RTX5090-O32G-GAMING">',
+    '</head><body><button>Add to Cart</button></body></html>'
+  ].join('');
+  clearRobotsCache();
+  await withFetch(async url => String(url).endsWith('/robots.txt') ? response({ text: 'User-agent: *\nAllow: /us/' }) : response({ text: html }), async () => {
+    const result = await storeAdapters.asus({
+      id: 'asus',
+      strategy: 'public_page',
+      urls: ['https://shop.asus.com/us/rog-astral-rtx5090-o32g-gaming.html']
+    }, { storeTimeoutMs: 100 });
+    assert.equal(result.status.source, 'asus_public_page');
+    assert.equal(result.listings.length, 1);
+    assert.equal(result.listings[0].productId, 'asus-ROG-ASTRAL-RTX5090-O32G-GAMING');
+    assert.equal(result.listings[0].inStock, true);
+  });
+}
+
 async function testAmazonPublicFixture() {
   const html = `<div data-asin="B0ABCDEFGH"><h2><span class="a-text-normal">ASUS RTX 5090 GPU</span></h2><a class="a-link-normal" href="/dp/B0ABCDEFGH"><span class="a-price-whole">2,499</span><span class="a-price-fraction">99</span></a><img data-image-src="https://m.media-amazon.com/images/gpu.jpg">In Stock</div>`;
   await withFetch(async () => response({ text: html }), async () => {
@@ -294,6 +343,8 @@ async function run() {
   await testAmdConfiguredPageFixture();
   await testBhPhotoProductFixture();
   await testEbayPublicFixture();
+  await testEbayProductPageFixture();
+  await testAsusProductMetaFixture();
   await testAmazonPublicFixture();
   await testPublicBlockStatus();
   await testRobotsDisallowStatus();
