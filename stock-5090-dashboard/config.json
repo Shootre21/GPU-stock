@@ -206,13 +206,14 @@
       "ignoreMaxPrice": true,
       "pollIntervalMs": 900000,
       "timeoutMs": 10000,
-      "maxUrlsPerCheck": 5,
+      "maxUrlsPerCheck": 6,
       "urls": [
         "https://us-store.msi.com/index.php?route=product/search&search=rtx%203090",
         "https://us-store.msi.com/index.php?route=product/search&search=rtx%204080",
         "https://us-store.msi.com/index.php?route=product/search&search=rtx%204090",
         "https://us-store.msi.com/index.php?route=product/search&search=rtx%205090",
-        "https://us-store.msi.com/Graphics-Cards/NVIDIA-GPU"
+        "https://us-store.msi.com/Graphics-Cards/NVIDIA-GPU/GeForce-RTX-50-Series",
+        "https://us-store.msi.com/Graphics-cards/nvidia-gpu"
       ]
     }
   ]

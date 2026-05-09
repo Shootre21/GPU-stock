@@ -209,9 +209,33 @@ async function testAsusProductMetaFixture() {
       strategy: 'public_page',
       urls: ['https://shop.asus.com/us/rog-astral-rtx5090-o32g-gaming.html']
     }, { storeTimeoutMs: 100 });
-    assert.equal(result.status.source, 'asus_public_page');
+    assert.equal(result.status.source, 'asus_public_meta');
     assert.equal(result.listings.length, 1);
     assert.equal(result.listings[0].productId, 'asus-ROG-ASTRAL-RTX5090-O32G-GAMING');
+    assert.equal(result.listings[0].inStock, true);
+  });
+}
+
+async function testMsiOpenCartFixture() {
+  const html = `<div class="product-layout product-grid col">
+    <div class="product-thumb">
+      <div class="image"><a href="https://us-store.msi.com/GeForce-RTX-5090-32G-GAMING-TRIO"><img src="https://asset-us-store.msi.com/5090.png" alt="GeForce RTX 5090 32G GAMING TRIO"></a></div>
+      <a class="title" href="https://us-store.msi.com/GeForce-RTX-5090-32G-GAMING-TRIO"><span class="crop-text-2">GeForce RTX 5090 32G GAMING TRIO</span></a>
+      <script>gtag('event', 'select_item', {items : [{ 'item_id' : 'SKU_2502', 'item_name' : 'GeForce RTX 5090 32G GAMING TRIO', 'price' :2449.99 }]});</script>
+      <span class="price-new">$2,449.99</span>
+      <button>Add to Cart</button>
+    </div>
+  </div>`;
+  clearRobotsCache();
+  await withFetch(async url => String(url).endsWith('/robots.txt') ? response({ text: 'User-agent: *\nAllow: /' }) : response({ text: html }), async () => {
+    const result = await storeAdapters.msi({
+      id: 'msi',
+      strategy: 'public_page',
+      urls: ['https://us-store.msi.com/Graphics-Cards/NVIDIA-GPU']
+    }, { storeTimeoutMs: 100 });
+    assert.equal(result.status.source, 'msi_public_opencart');
+    assert.equal(result.listings.length, 1);
+    assert.equal(result.listings[0].productId, 'msi-SKU_2502');
     assert.equal(result.listings[0].inStock, true);
   });
 }
@@ -337,6 +361,7 @@ function testStandaloneGpuFilter() {
   assert.equal(isStandaloneGpuProduct('ASUS ROG Astral GeForce RTX 5090 OC Edition Graphics Card 32GB GDDR7'), true);
   assert.equal(isStandaloneGpuProduct('Panorama XL RTX 5090 AMD Ryzen 7 7800X3D 32GB DDR5 RAM 2TB NVMe Windows 11 Prebuilt Gaming Desktop PC'), false);
   assert.equal(isStandaloneGpuProduct('GIGABYTE AORUS RTX 5090 AI Box Graphics Card - External GPU'), false);
+  assert.equal(isStandaloneGpuProduct('GeForce RTX 5090 32G VENTUS 3X OC | MEG Z890 UNIFY-X Bundle Pack'), false);
   assert.equal(isNewRetailCondition('ASUS GeForce RTX 4090 Graphics Card'), true);
   assert.equal(isNewRetailCondition('ASUS Refurbished Excellent GeForce RTX 4090 Graphics Card'), false);
 }
@@ -372,6 +397,7 @@ async function run() {
   await testEbayPublicFixture();
   await testEbayProductPageFixture();
   await testAsusProductMetaFixture();
+  await testMsiOpenCartFixture();
   await testAmazonPublicFixture();
   await testPublicBlockStatus();
   await testRobotsDisallowStatus();

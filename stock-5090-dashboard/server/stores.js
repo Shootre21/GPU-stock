@@ -102,7 +102,13 @@ function parseMoney(value) {
 function absoluteUrl(base, maybePath) {
   if (!maybePath) return '';
   const value = decodeEscapes(maybePath);
-  if (/^https?:\/\//i.test(value)) return value;
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      return new URL(value).toString();
+    } catch {
+      return value;
+    }
+  }
   return new URL(value, base).toString();
 }
 
@@ -1318,6 +1324,49 @@ function parseGenericPublicProducts(storeConfig = {}, text = '', baseUrl = '') {
   return items;
 }
 
+function parseMsiProducts(text = '', baseUrl = '') {
+  const items = [];
+  const chunks = publicHtmlChunks(
+    text,
+    /<div[^>]+class="[^"]*product-layout[^"]*"[^>]*>/i,
+    /(?=<div[^>]+class="[^"]*product-layout[^"]*"|<div[^>]+class="[^"]*pagination|$)/i
+  );
+
+  for (const chunk of chunks.slice(0, 48)) {
+    const title = stripTags(
+      (chunk.match(/'item_name'\s*:\s*'([^']+)'/i) || [])[1] ||
+      (chunk.match(/<a[^>]+class="[^"]*title[^"]*"[^>]*>([\s\S]*?)<\/a>/i) || [])[1] ||
+      (chunk.match(/<span[^>]+class="[^"]*crop-text-2[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] ||
+      (chunk.match(/<img[^>]+alt="([^"]+)"/i) || [])[1] ||
+      ''
+    );
+    if (!/\b(?:RTX|GeForce)\b/i.test(title)) continue;
+
+    const href = (chunk.match(/<a[^>]+href="([^"]+)"/i) || [])[1];
+    const priceText = (chunk.match(/'price'\s*:\s*([0-9.]+)/i) || [])[1] ||
+      stripTags((chunk.match(/<span[^>]+class="[^"]*price-new[^"]*"[^>]*>([\s\S]*?)<\/span>/i) || [])[1] || '') ||
+      (chunk.match(/\$\s*[\d,]+(?:\.\d{2})?/i) || [])[0] ||
+      '';
+    const imageUrl = (chunk.match(/<img[^>]+(?:src|data-src)="([^"]+)"/i) || [])[1];
+    const sku = (chunk.match(/'item_id'\s*:\s*'([^']+)'/i) || [])[1];
+    if (!href || !title || !Number.isFinite(parseMoney(priceText))) continue;
+
+    const inStock = /add\s*to\s*cart/i.test(stripTags(chunk)) && !/notify\s*me|out\s*of\s*stock|sold\s*out/i.test(stripTags(chunk));
+    items.push({
+      title,
+      price: priceText,
+      url: absoluteUrl(baseUrl, href),
+      imageUrl,
+      inStock,
+      productId: sku ? `msi-${sku}` : `msi-${absoluteUrl(baseUrl, href).split('/').filter(Boolean).pop()}`,
+      source: 'msi_public_opencart',
+      rawAvailability: inStock ? 'add_to_cart_public_page' : 'notify_or_out_of_stock_public_page'
+    });
+  }
+
+  return dedupeListings(items);
+}
+
 async function fetchConfiguredPublicStore(storeConfig = {}, config = {}, source = `${storeConfig.id}_public_page`) {
   const urls = Array.isArray(storeConfig.urls) ? storeConfig.urls : [];
   if (!urls.length) {
@@ -1334,11 +1383,13 @@ async function fetchConfiguredPublicStore(storeConfig = {}, config = {}, source 
       statuses.push({ ...fetched.status, source });
       continue;
     }
-    const items = parseGenericPublicProducts(storeConfig, fetched.text, url);
+    const items = storeConfig.id === 'msi'
+      ? parseMsiProducts(fetched.text, url)
+      : parseGenericPublicProducts(storeConfig, fetched.text, url);
     listings.push(...items);
     statuses.push(makeStatus(storeConfig, {
       ok: true,
-      source: items.some(item => /jsonld$/.test(item.source)) ? `${storeConfig.id}_public_jsonld` : source,
+      source: items.some(item => /jsonld$/.test(item.source)) ? `${storeConfig.id}_public_jsonld` : (items[0]?.source || source),
       seen: items.length,
       listingCount: items.length,
       inStock: items.filter(item => item.inStock).length,
@@ -1348,7 +1399,7 @@ async function fetchConfiguredPublicStore(storeConfig = {}, config = {}, source 
   }
 
   const deduped = dedupeListings(listings);
-  return { listings: deduped, status: combineStatuses(storeConfig, statuses, deduped, source) };
+  return { listings: deduped, status: combineStatuses(storeConfig, statuses, deduped, deduped[0]?.source || source) };
 }
 
 async function fetchAntonline(storeConfig = {}, config = {}) {
