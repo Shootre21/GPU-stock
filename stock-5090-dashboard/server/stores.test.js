@@ -290,6 +290,33 @@ async function testEbaySearchFallbackChallenge() {
   });
 }
 
+async function testEbayRssFallbackFixture() {
+  clearRobotsCache();
+  const calls = [];
+  const rss = `<?xml version="1.0" encoding="UTF-8"?>
+    <rss><channel><item>
+      <title>PNY GeForce RTX 4090 24GB Graphics Card</title>
+      <link>https://www.ebay.com/itm/409040904090</link>
+      <guid>https://www.ebay.com/itm/409040904090</guid>
+      <description>Buy It Now price: $1,799.99</description>
+      <media:thumbnail url="https://i.ebayimg.com/4090.jpg" />
+    </item></channel></rss>`;
+  await withFetch(async url => {
+    const value = String(url);
+    calls.push(value);
+    if (value.endsWith('/robots.txt')) return response({ text: 'User-agent: *\nAllow: /sch/i.html?*&_rss=1\nAllow: /sch/i.html?*&mkcid=2\nDisallow: /sch/' });
+    if (value.includes('_rss=1')) return response({ text: rss });
+    return response({ status: 403, text: 'Access Denied' });
+  }, async () => {
+    const result = await storeAdapters.ebay({ id: 'ebay', strategy: 'public_page', query: 'rtx 4090 gpu' }, { storeTimeoutMs: 100 });
+    assert(calls.some(call => call.includes('_rss=1')));
+    assert.equal(result.status.source, 'ebay_public_rss');
+    assert.equal(result.listings.length, 1);
+    assert.equal(result.listings[0].productId, 'ebay-409040904090');
+    assert.equal(result.listings[0].inStock, true);
+  });
+}
+
 async function testAlertTransitionUses4090SampleCards() {
   const current = [
     { store: 'bestbuy', productId: 'bestbuy-sku-4090', title: 'NVIDIA GeForce RTX 4090 24GB', price: 1599.99, url: 'https://www.bestbuy.com/site/4090.p', inStock: true },
@@ -350,6 +377,7 @@ async function run() {
   await testRobotsDisallowStatus();
   await testEbayAllowedSearchPattern();
   await testEbaySearchFallbackChallenge();
+  await testEbayRssFallbackFixture();
   await test4090PublicConnectorFixtures();
   await testAlertTransitionUses4090SampleCards();
   testStandaloneGpuFilter();

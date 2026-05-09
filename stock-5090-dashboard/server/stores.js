@@ -905,10 +905,21 @@ async function fetchEbay(storeConfig = {}, config = {}) {
   const first = await fetchEbayPublicUrl(storeConfig, config, url, 'ebay_public_search');
   if (!first.status || first.status.ok !== false || first.listings.length) return first;
 
+  const rssParams = new URLSearchParams({ LH_BIN: '1', _nkw: storeQuery(storeConfig), _rss: '1' });
+  const rssUrl = `https://www.ebay.com/sch/i.html?${rssParams.toString()}`;
+  await politeQueryDelay(storeConfig, config);
+  const rss = await fetchEbayRssUrl(storeConfig, config, rssUrl);
+  if (rss.listings.length) {
+    return {
+      listings: rss.listings,
+      status: combineStatuses(storeConfig, [first.status, rss.status], rss.listings, 'ebay_public_rss')
+    };
+  }
+
   const fallbackUrls = Array.isArray(storeConfig.categoryUrls) ? storeConfig.categoryUrls : [];
-  if (!fallbackUrls.length) return first;
-  const listings = [...first.listings];
-  const statuses = [first.status];
+  if (!fallbackUrls.length) return { listings: [], status: combineStatuses(storeConfig, [first.status, rss.status], [], 'ebay_public_search') };
+  const listings = [...first.listings, ...rss.listings];
+  const statuses = [first.status, rss.status];
   for (const fallbackUrl of fallbackUrls.slice(0, 4)) {
     await politeQueryDelay(storeConfig, config);
     const result = await fetchEbayPublicUrl(storeConfig, config, fallbackUrl, 'ebay_public_category');
@@ -918,6 +929,45 @@ async function fetchEbay(storeConfig = {}, config = {}) {
   }
   const deduped = dedupeListings(listings);
   return { listings: deduped, status: combineStatuses(storeConfig, statuses, deduped, 'ebay_public_search') };
+}
+
+function parseEbayRssItems(text = '') {
+  const items = [];
+  const itemMatches = [...String(text).matchAll(/<item\b[\s\S]*?<\/item>/gi)];
+  for (const match of itemMatches.slice(0, 40)) {
+    const chunk = match[0];
+    const title = stripTags((chunk.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '');
+    const link = stripTags((chunk.match(/<link[^>]*>([\s\S]*?)<\/link>/i) || [])[1] || '');
+    const description = stripTags((chunk.match(/<description[^>]*>([\s\S]*?)<\/description>/i) || [])[1] || '');
+    const price = (description.match(/\$\s*[\d,]+(?:\.\d{2})?/) || title.match(/\$\s*[\d,]+(?:\.\d{2})?/) || [])[0];
+    const itemId = (decodeEscapes(link).match(/\/itm\/(?:[^/]+\/)?(\d+)/i) || [])[1] ||
+      stripTags((chunk.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i) || [])[1] || '').match(/(\d{8,})/)?.[1];
+    const imageUrl = attrFromTag((chunk.match(/<(?:media:thumbnail|media:content|enclosure)\b[^>]*>/i) || [])[0] || '', 'url');
+    if (!title || !link || !price || /shop on ebay/i.test(title)) continue;
+    items.push({
+      title,
+      price,
+      url: decodeEscapes(link),
+      imageUrl,
+      inStock: !/sold|ended|out of stock/i.test(`${title} ${description}`),
+      productId: itemId ? `ebay-${itemId}` : undefined,
+      source: 'ebay_public_rss',
+      rawAvailability: 'fixed_price_public_rss_listing'
+    });
+  }
+  return items;
+}
+
+async function fetchEbayRssUrl(storeConfig = {}, config = {}, url) {
+  const fetched = await fetchPublicHtml(storeConfig, config, url);
+  if (fetched.blocked) return { listings: [], status: { ...fetched.status, source: 'ebay_public_rss' } };
+  const items = parseEbayRssItems(fetched.text);
+  return adapterResult(storeConfig, items, {
+    source: 'ebay_public_rss',
+    seen: items.length,
+    diagnosis: items.length ? 'public_live_listings_found' : 'parser_no_match_or_no_results',
+    url
+  });
 }
 
 async function fetchEbayPublicUrl(storeConfig = {}, config = {}, url, source) {

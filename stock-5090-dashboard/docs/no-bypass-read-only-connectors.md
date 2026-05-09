@@ -12,6 +12,12 @@ The safe connector path is:
 
 For eBay, exact item URLs in `stores[].urls` are checked before search/category pages. Set `productOnly: true` for eBay if you want the connector to avoid search/category pages completely.
 
+When product URLs are not configured, eBay is checked in this order:
+
+1. Public fixed-price search result page.
+2. Public RSS search feed, only when robots.txt allows it.
+3. Public category page fallback.
+
 For ASUS, configured product URLs use the same read-only parser as search pages, with JSON-LD and meta fallback support for title, price, image, SKU, and availability.
 
 Example eBay product-only config:
