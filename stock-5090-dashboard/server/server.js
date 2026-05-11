@@ -4,10 +4,13 @@ const path = require('path');
 const { storeAdapters } = require('./stores');
 const { matchesKeywords, inPriceRange, isStandaloneGpuProduct, isNewRetailCondition, enrichListing, withinTargetCap, isMsrpHit, listingKey } = require('./utils');
 const { detectNewInStockAlerts, detectNewListingAlerts } = require('./alerting');
+const { databaseHealth, initDatabase, persistScanToDatabase, seedHistoryToDatabase } = require('./db');
+const { buildStats, isGoodObservation, latestListings, updateHistory } = require('./stats');
 
 const ROOT = path.resolve(__dirname, '..');
 const CONFIG_FILE = path.join(ROOT, 'config.json');
 const STATE_FILE = path.join(ROOT, 'data', 'state.json');
+const HISTORY_FILE = path.join(ROOT, 'data', 'history.json');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const PORT = process.env.STOCK_DASHBOARD_PORT || 4388;
 let activeScan = null;
@@ -91,6 +94,17 @@ function readStateForResponse() {
     state.recoveredStaleScanAt = new Date().toISOString();
     writeJson(STATE_FILE, state);
   }
+  const history = readJson(HISTORY_FILE, {});
+  if (Array.isArray(state.stores)) {
+    state.stores = state.stores.filter(isGoodObservation);
+    state.summary = summarizeListings(state.stores);
+  }
+  if ((!Array.isArray(state.stores) || state.stores.length === 0) && Array.isArray(history.observations) && history.observations.length) {
+    state.stores = latestListings(history);
+    state.summary = summarizeListings(state.stores);
+    state.restoredListingsFromHistory = true;
+  }
+  state.stats = state.stats || history.stats || buildStats(history, state);
   return state;
 }
 function sameStoreError(a, b) {
@@ -121,11 +135,12 @@ function classifyError(error) {
 }
 
 function summarizeListings(listings = []) {
-  const inStock = listings.filter(item => item.inStock).length;
-  const withinTarget = listings.filter(item => item.withinTarget !== false).length;
-  const cheapest = listings.slice().sort((a, b) => Number(a.price) - Number(b.price))[0] || null;
+  const clean = listings.filter(item => isGoodObservation(item));
+  const inStock = clean.filter(item => item.inStock).length;
+  const withinTarget = clean.filter(item => item.withinTarget !== false).length;
+  const cheapest = clean.slice().sort((a, b) => Number(a.price) - Number(b.price))[0] || null;
   return {
-    total: listings.length,
+    total: clean.length,
     inStock,
     withinTarget,
     cheapest
@@ -384,15 +399,20 @@ async function runScan(options = {}) {
       if (delayMs > 0) await sleep(Math.min(delayMs, 30000));
     }
   } finally {
-    const dedupedListings = Array.from(new Map(nextListings.map(item => [listingKey(item), item])).values());
+    let dedupedListings = Array.from(new Map(nextListings.filter(isGoodObservation).map(item => [listingKey(item), item])).values());
+    if (!dedupedListings.length) {
+      const restored = latestListings(readJson(HISTORY_FILE, {}));
+      if (restored.length) dedupedListings = restored;
+    }
     const storeById = new Map((config.stores || []).map(store => [store.id, store]));
     const scheduledStoreStatus = storeStatus.map(status => addSchedule(status, storeById.get(status.store) || {}, config));
     const transitionAlerts = detectNewInStockAlerts(previousListings, dedupedListings);
     const listingAlerts = detectNewListingAlerts(previousListings, dedupedListings);
+    const generatedAlerts = [...listingAlerts, ...transitionAlerts, ...newAlerts];
     const nextState = {
       stores: dedupedListings,
       summary: summarizeListings(dedupedListings),
-      alerts: pruneAlerts([...(state.alerts || []), ...listingAlerts, ...transitionAlerts, ...newAlerts]),
+      alerts: pruneAlerts([...(state.alerts || []), ...generatedAlerts]),
       lastScanAt: new Date().toISOString(),
       scanStartedAt: state.scanStartedAt,
       scanMode,
@@ -422,6 +442,24 @@ async function runScan(options = {}) {
       },
       configIssues: validateConfig(config)
     };
+    const history = updateHistory(readJson(HISTORY_FILE, {}), {
+      at: nextState.lastScanAt,
+      listings: dedupedListings,
+      storeStatus: scheduledStoreStatus,
+      alerts: generatedAlerts,
+      currentState: nextState
+    });
+    nextState.stats = history.stats;
+    const dbResult = await persistScanToDatabase({
+      at: nextState.lastScanAt,
+      listings: dedupedListings,
+      storeStatus: scheduledStoreStatus,
+      alerts: generatedAlerts,
+      stats: history.stats,
+      summary: nextState.summary
+    });
+    nextState.database = dbResult;
+    writeJson(HISTORY_FILE, history);
     writeJson(STATE_FILE, nextState);
   }
 
@@ -448,6 +486,10 @@ function triggerScan(options = {}) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   if (url.pathname === '/api/state') return send(res, 200, readStateForResponse());
+  if (url.pathname === '/api/stats') {
+    const state = readStateForResponse();
+    return send(res, 200, state.stats || buildStats(readJson(HISTORY_FILE, {}), state));
+  }
   if (url.pathname === '/api/config' && req.method === 'GET') {
     const config = readJson(CONFIG_FILE, {});
     return send(res, 200, {
@@ -459,7 +501,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (url.pathname === '/api/health') {
     const config = readJson(CONFIG_FILE, {});
-    const state = readJson(STATE_FILE, {});
+    const state = readStateForResponse();
     return send(res, 200, {
       ok: true,
       port: Number(PORT),
@@ -480,7 +522,8 @@ const server = http.createServer(async (req, res) => {
       configIssues: validateConfig(config),
       listingCount: Array.isArray(state.stores) ? state.stores.length : 0,
       alertCount: Array.isArray(state.alerts) ? state.alerts.length : 0,
-      summary: state.summary || summarizeListings(state.stores || [])
+      summary: state.summary || summarizeListings(state.stores || []),
+      database: await databaseHealth()
     });
   }
   if (url.pathname === '/api/scan' && req.method === 'POST') {
@@ -520,17 +563,35 @@ const server = http.createServer(async (req, res) => {
   return send(res, 404, { error: 'Not found' });
 });
 
-server.listen(PORT, () => {
-  console.log(`5090 stock dashboard listening on http://127.0.0.1:${PORT}`);
+async function start() {
+  try {
+    const db = await initDatabase();
+    console.log(`database ${db.ready ? 'ready' : 'disabled'}`);
+    if (db.ready) {
+      const seeded = await seedHistoryToDatabase(readJson(HISTORY_FILE, {}));
+      if (seeded.seeded) console.log('database seeded from JSON history');
+    }
+  } catch (error) {
+    console.error('database init error', error);
+  }
+
+  server.listen(PORT, () => {
+    console.log(`5090 stock dashboard listening on http://127.0.0.1:${PORT}`);
+  });
+
+  const configAtStartup = readJson(CONFIG_FILE, { pollIntervalMs: 120000, schedulerTickMs: 30000, autoStartScan: false, autoPolling: false });
+  if (configAtStartup.autoPolling) {
+    setInterval(() => {
+      scan().catch(err => console.error('scan error', err));
+    }, schedulerTickMs(configAtStartup));
+  }
+
+  if (configAtStartup.autoStartScan) {
+    scan().catch(err => console.error('initial scan error', err));
+  }
+}
+
+start().catch(error => {
+  console.error('startup error', error);
+  process.exit(1);
 });
-
-const configAtStartup = readJson(CONFIG_FILE, { pollIntervalMs: 120000, schedulerTickMs: 30000, autoStartScan: false, autoPolling: false });
-if (configAtStartup.autoPolling) {
-  setInterval(() => {
-    scan().catch(err => console.error('scan error', err));
-  }, schedulerTickMs(configAtStartup));
-}
-
-if (configAtStartup.autoStartScan) {
-  scan().catch(err => console.error('initial scan error', err));
-}

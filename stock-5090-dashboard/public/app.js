@@ -19,6 +19,13 @@ const els = {
   directLinks: document.querySelector('#directLinks'),
   alerts: document.querySelector('#alerts'),
   storeStatus: document.querySelector('#storeStatus'),
+  tabButtons: document.querySelectorAll('.tab-btn'),
+  tabPanels: document.querySelectorAll('.tab-panel'),
+  msrpStats: document.querySelector('#msrpStats'),
+  bestStores: document.querySelector('#bestStores'),
+  bestPrices: document.querySelector('#bestPrices'),
+  restockStats: document.querySelector('#restockStats'),
+  bestDays: document.querySelector('#bestDays'),
   bruhSound: document.querySelector('#bruhSound'),
   fahhhSound: document.querySelector('#fahhhSound')
 };
@@ -54,6 +61,18 @@ function dollars(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return 'PRICE UNKNOWN';
   return `$${number.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function numberLabel(value, digits = 1) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 'not enough data';
+  return number.toLocaleString(undefined, { maximumFractionDigits: digits });
+}
+
+function pct(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return '0%';
+  return `${Math.round(number * 100)}%`;
 }
 
 function clock(value) {
@@ -283,6 +302,102 @@ function renderDiagnostics(state = {}) {
   }).join('');
 }
 
+function statRow(label, value, meta = '') {
+  return `
+    <div class="stat-row">
+      <span>${esc(label)}</span>
+      <strong>${esc(value)}</strong>
+      ${meta ? `<small>${esc(meta)}</small>` : ''}
+    </div>
+  `;
+}
+
+function storeName(store) {
+  return STORE_NAMES[store] || String(store || 'UNKNOWN').toUpperCase();
+}
+
+function renderMsrpStats(stats = {}) {
+  const msrp = stats.msrpTiming || {};
+  const sample = stats.sample || {};
+  const bestHour = msrp.bestHour ? `${msrp.bestHour.label} (${msrp.bestHour.count})` : 'not enough MSRP hits';
+  const bestDay = msrp.bestDay ? `${msrp.bestDay.label} (${msrp.bestDay.count})` : 'not enough MSRP hits';
+  const store = (msrp.byStore || [])[0];
+  els.msrpStats.innerHTML = [
+    statRow('Best MSRP hour', bestHour),
+    statRow('Best MSRP day', bestDay),
+    statRow('Most MSRP signals', store ? `${storeName(store.label)} (${store.count})` : 'not enough MSRP hits'),
+    statRow('MSRP sample size', `${sample.msrpEvents || 0} events`, stats.notes || '')
+  ].join('');
+}
+
+function renderBestStores(stats = {}) {
+  const rows = (stats.bestStores || []).slice(0, 6);
+  if (!rows.length) {
+    els.bestStores.innerHTML = '<div class="muted-row">No store history yet.</div>';
+    return;
+  }
+  els.bestStores.innerHTML = rows.map(store => statRow(
+    storeName(store.store),
+    `${store.restockEvents} drops / ${store.inStockObservations} in-stock sightings`,
+    `MSRP rate ${pct(store.msrpDropRate)} | best ${store.bestPrice == null ? 'none' : dollars(store.bestPrice)}`
+  )).join('');
+}
+
+function renderBestPrices(stats = {}) {
+  const rows = stats.bestHistoricalPrice || [];
+  if (!rows.length) {
+    els.bestPrices.innerHTML = '<div class="muted-row">No historical prices recorded yet.</div>';
+    return;
+  }
+  els.bestPrices.innerHTML = rows.map(item => `
+    <a class="stat-row stat-link" href="${safeUrl(item.url)}" target="_blank" rel="noreferrer">
+      <span>RTX ${esc(item.model)}</span>
+      <strong>${esc(dollars(item.price))}</strong>
+      <small>${esc(storeName(item.store))} | ${esc(clock(item.at))} | ${esc(item.title)}</small>
+    </a>
+  `).join('');
+}
+
+function renderRestockStats(stats = {}) {
+  const rows = (stats.restockFrequency || []).slice(0, 10);
+  if (!rows.length) {
+    els.restockStats.innerHTML = '<div class="muted-row">No restock events yet. The watcher records these when a listing first appears or flips in stock.</div>';
+    return;
+  }
+  els.restockStats.innerHTML = rows.map(row => statRow(
+    storeName(row.store),
+    `${numberLabel(row.dropsPerWeek, 2)} drops/week`,
+    `${row.restockEvents} events | avg gap ${row.avgHoursBetweenDrops == null ? 'not enough data' : `${numberLabel(row.avgHoursBetweenDrops, 1)}h`} | checks ${row.successfulChecks}/${row.checks}`
+  )).join('');
+}
+
+function renderBestDays(stats = {}) {
+  const days = stats.bestDayToCheck || {};
+  const inStock = days.byInStockObservation || [];
+  const drops = days.byRestockEvent || [];
+  const left = inStock.length
+    ? inStock.map(day => statRow(day.label, `${day.count} in-stock sightings`)).join('')
+    : '<div class="muted-row">No in-stock day pattern yet.</div>';
+  const right = drops.length
+    ? drops.map(day => statRow(day.label, `${day.count} restock events`)).join('')
+    : '<div class="muted-row">No drop day pattern yet.</div>';
+  els.bestDays.innerHTML = `
+    <div class="split-stats">
+      <div><h3>By in-stock sightings</h3>${left}</div>
+      <div><h3>By drops</h3>${right}</div>
+    </div>
+  `;
+}
+
+function renderStats(state = {}) {
+  const stats = state.stats || {};
+  renderMsrpStats(stats);
+  renderBestStores(stats);
+  renderBestPrices(stats);
+  renderRestockStats(stats);
+  renderBestDays(stats);
+}
+
 function playNewAlertSound(state = {}) {
   const alerts = state.alerts || [];
   const msrpKeys = new Set((state.stores || []).filter(item => item.msrpHit && item.inStock).map(listingKey));
@@ -310,9 +425,15 @@ async function loadState() {
   renderDirectLinks(state);
   renderAlerts(state);
   renderDiagnostics(state);
+  renderStats(state);
   playNewAlertSound(state);
   els.scanBtn.disabled = Boolean(state.isScanning);
   els.scanBtn.textContent = state.isScanning ? 'Scanning...' : 'Scan now';
+}
+
+function switchTab(id) {
+  els.tabButtons.forEach(button => button.classList.toggle('active', button.dataset.tab === id));
+  els.tabPanels.forEach(panel => panel.classList.toggle('active', panel.id === id));
 }
 
 async function scanNow() {
@@ -323,6 +444,7 @@ async function scanNow() {
 }
 
 els.scanBtn?.addEventListener('click', scanNow);
+els.tabButtons.forEach(button => button.addEventListener('click', () => switchTab(button.dataset.tab)));
 window.addEventListener('pointerdown', markAudioUnlocked, { once: true });
 window.addEventListener('keydown', markAudioUnlocked, { once: true });
 loadState().catch(error => {

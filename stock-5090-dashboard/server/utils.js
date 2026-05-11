@@ -33,7 +33,7 @@ function isStandaloneGpuProduct(title = '') {
   const systemLanguage = /\b(prebuilt|gaming desktop|desktop pc|laptop|notebook|workstation|server|mini pc|computer)\b/.test(text);
   const componentBundleLanguage = /\b(ryzen|intel core|core ultra|ddr5 ram|ddr4 ram|\bram\b|nvme|ssd|windows 11|keyboard|mouse|rj45|wifi 7|wi fi 7|z890|x870|b850|motherboard|mainboard)\b/.test(text);
   const externalLanguage = /\b(external gpu|egpu|ai box)\b/.test(text);
-  const accessoryBundle = /\b(bundle with|bundled with|bundle pack|dockstation|backpack)\b/.test(text);
+  const accessoryBundle = /\b(bundle with|bundled with|bundle pack|dockstation|backpack|water block|gpu block|backplate|thermal pad|kryosheet)\b/.test(text);
   return hasTargetModel && hasGpuLanguage && !systemLanguage && !componentBundleLanguage && !externalLanguage && !accessoryBundle;
 }
 

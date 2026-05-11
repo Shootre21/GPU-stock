@@ -362,6 +362,7 @@ function testStandaloneGpuFilter() {
   assert.equal(isStandaloneGpuProduct('Panorama XL RTX 5090 AMD Ryzen 7 7800X3D 32GB DDR5 RAM 2TB NVMe Windows 11 Prebuilt Gaming Desktop PC'), false);
   assert.equal(isStandaloneGpuProduct('GIGABYTE AORUS RTX 5090 AI Box Graphics Card - External GPU'), false);
   assert.equal(isStandaloneGpuProduct('GeForce RTX 5090 32G VENTUS 3X OC | MEG Z890 UNIFY-X Bundle Pack'), false);
+  assert.equal(isStandaloneGpuProduct('Alphacool Core GeForce RTX 5090 GPU Water Block with Backplate and Thermal Pad'), false);
   assert.equal(isNewRetailCondition('ASUS GeForce RTX 4090 Graphics Card'), true);
   assert.equal(isNewRetailCondition('ASUS Refurbished Excellent GeForce RTX 4090 Graphics Card'), false);
 }

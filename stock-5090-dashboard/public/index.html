@@ -17,22 +17,54 @@
     </header>
 
     <section id="status" class="ticker"></section>
-    <section id="stockWall" class="stock-wall"></section>
+    <nav class="tabs" aria-label="Dashboard tabs">
+      <button class="tab-btn active" type="button" data-tab="liveTab">Live board</button>
+      <button class="tab-btn" type="button" data-tab="statsTab">Stats</button>
+    </nav>
 
-    <section class="links-panel">
-      <div class="panel-title">Direct restock links</div>
-      <div id="directLinks" class="direct-links"></div>
+    <section id="liveTab" class="tab-panel active">
+      <section id="stockWall" class="stock-wall"></section>
+
+      <section class="links-panel">
+        <div class="panel-title">Direct restock links</div>
+        <div id="directLinks" class="direct-links"></div>
+      </section>
+
+      <section class="lower-panel">
+        <div class="drop-panel">
+          <div class="panel-title">Drop history</div>
+          <div id="alerts" class="drop-history"></div>
+        </div>
+        <div class="drop-panel">
+          <div class="panel-title">Store diagnostics</div>
+          <div id="storeStatus" class="diagnostics"></div>
+        </div>
+      </section>
     </section>
 
-    <section class="lower-panel">
-      <div class="drop-panel">
-        <div class="panel-title">Drop history</div>
-        <div id="alerts" class="drop-history"></div>
-      </div>
-      <div class="drop-panel">
-        <div class="panel-title">Store diagnostics</div>
-        <div id="storeStatus" class="diagnostics"></div>
-      </div>
+    <section id="statsTab" class="tab-panel">
+      <section class="stats-grid">
+        <div class="stat-card wide">
+          <div class="panel-title">Best time to check MSRP</div>
+          <div id="msrpStats" class="stat-body"></div>
+        </div>
+        <div class="stat-card">
+          <div class="panel-title">Best store so far</div>
+          <div id="bestStores" class="stat-body"></div>
+        </div>
+        <div class="stat-card">
+          <div class="panel-title">Best historical price</div>
+          <div id="bestPrices" class="stat-body"></div>
+        </div>
+        <div class="stat-card wide">
+          <div class="panel-title">Restock frequency</div>
+          <div id="restockStats" class="stat-body"></div>
+        </div>
+        <div class="stat-card wide">
+          <div class="panel-title">Best day to check</div>
+          <div id="bestDays" class="stat-body"></div>
+        </div>
+      </section>
     </section>
 
     <audio id="bruhSound" preload="auto" src="/sounds/bruh.mp3"></audio>

@@ -1,0 +1,4 @@
+node_modules/
+data/history.json
+data/backups/*
+!data/backups/.gitkeep

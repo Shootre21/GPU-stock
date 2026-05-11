@@ -1,0 +1,14 @@
+{
+  "name": "gpu-hunter-stock-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Public GPU stock watcher with durable historical stats storage.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node server/stores.test.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

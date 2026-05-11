@@ -1,11 +1,59 @@
-version: '3.9'
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stock-5090-postgres
+    environment:
+      POSTGRES_DB: gpu_hunter
+      POSTGRES_USER: gpu_hunter
+      POSTGRES_PASSWORD: gpu_hunter
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gpu_hunter -d gpu_hunter"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    restart: unless-stopped
+
   stock-5090-dashboard:
     build: .
     container_name: stock-5090-dashboard
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://gpu_hunter:gpu_hunter@postgres:5432/gpu_hunter
+      DATABASE_COMPACT_INTERVAL_MS: 3600000
     ports:
       - "4388:4388"
     volumes:
       - ./data:/app/data
       - ./sounds:/app/sounds
     restart: unless-stopped
+
+  postgres-backup:
+    image: postgres:16-alpine
+    container_name: stock-5090-postgres-backup
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGDATABASE: gpu_hunter
+      PGUSER: gpu_hunter
+      PGPASSWORD: gpu_hunter
+      BACKUP_INTERVAL_SECONDS: 21600
+      BACKUP_RETENTION_DAYS: 21
+    volumes:
+      - ./data/backups:/backups
+    command: >
+      sh -c 'while true; do
+        file="/backups/gpu_hunter_`date -u +%Y%m%dT%H%M%SZ`.sql.gz";
+        pg_dump | gzip -9 > "$$file";
+        find /backups -type f -name "gpu_hunter_*.sql.gz" -mtime +$${BACKUP_RETENTION_DAYS:-21} -delete;
+        sleep $${BACKUP_INTERVAL_SECONDS:-21600};
+      done'
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
