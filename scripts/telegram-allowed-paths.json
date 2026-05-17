@@ -1,0 +1,12 @@
+{
+  "allowedRoots": [
+    "/home/shootre/.openclaw/workspace",
+    "/home/shootre/Downloads",
+    "/home/shootre/Documents"
+  ],
+  "aliases": {
+    "workspace": "/home/shootre/.openclaw/workspace",
+    "downloads": "/home/shootre/Downloads",
+    "documents": "/home/shootre/Documents"
+  }
+}
