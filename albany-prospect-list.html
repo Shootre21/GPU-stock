@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Albany Prospect List - Cinderstrike</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a31;
+      --panel-2: #18213f;
+      --text: #ecf2ff;
+      --muted: #9fb1d1;
+      --line: rgba(255,255,255,.08);
+      --blue: #60a5fa;
+      --green: #86efac;
+      --yellow: #fcd34d;
+      --red: #fca5a5;
+      --pill: rgba(96,165,250,.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #09101e 0%, #0f1730 100%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+    .hero {
+      background: linear-gradient(135deg, rgba(96,165,250,.16), rgba(56,189,248,.08));
+      border: 1px solid rgba(147,197,253,.18);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.1;
+    }
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 820px;
+      line-height: 1.55;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .pill {
+      background: var(--pill);
+      color: #dbeafe;
+      border: 1px solid rgba(147,197,253,.24);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.18);
+    }
+    .card h2, .section h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .card p, .section p, li {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.18);
+    }
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+    th, td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      color: #dbeafe;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      background: rgba(255,255,255,.02);
+    }
+    tr:hover td {
+      background: rgba(255,255,255,.02);
+    }
+    .score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1px solid transparent;
+    }
+    .score.high { background: rgba(134,239,172,.14); color: var(--green); border-color: rgba(134,239,172,.18); }
+    .score.mid { background: rgba(252,211,77,.12); color: var(--yellow); border-color: rgba(252,211,77,.16); }
+    .score.low { background: rgba(252,165,165,.12); color: var(--red); border-color: rgba(252,165,165,.16); }
+    .callout {
+      border-left: 4px solid var(--blue);
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: var(--panel-2);
+      color: var(--text);
+      margin-top: 12px;
+    }
+    .script {
+      white-space: pre-wrap;
+      background: #0c1328;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      color: #e5eeff;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+    a { color: #93c5fd; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul { margin: 10px 0 0 18px; padding: 0; }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 28px; }
+    }
+    @media print {
+      body { background: #fff; color: #111; }
+      .hero, .card, .section { box-shadow: none; background: #fff; color: #111; border-color: #ddd; }
+      .pill, .score { border: 1px solid #ccc; color: #111; background: #f5f5f5; }
+      .card p, .section p, li, .muted, .script { color: #333 !important; }
+      a { color: #111; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Albany, Oregon Prospect List</h1>
+      <p>A clean call-first prospecting sheet for offering practical cybersecurity services to small businesses in Albany. This version prioritizes organizations that likely handle customer data, rely heavily on email and web systems, and may not have in-house security support.</p>
+      <div class="meta">
+        <span class="pill">Prepared for Cinderstrike</span>
+        <span class="pill">Local outreach focus</span>
+        <span class="pill">Phone-first prospecting</span>
+        <span class="pill">Healthcare / real estate / professional services</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Best Targets</h2>
+        <p>Healthcare, dental, vision, real estate, law, accounting, and insurance are the strongest categories because they often have sensitive data, heavy email workflows, and limited in-house security staffing.</p>
+      </div>
+      <div class="card">
+        <h2>Best Opening</h2>
+        <p>Lead with a practical risk conversation, not “do you want cybersecurity.” Ask who handles IT or security decisions for the office and keep it short.</p>
+      </div>
+      <div class="card">
+        <h2>Best First 5</h2>
+        <p>River View Family Eyecare, Cedarwood Dental Professionals, Valley Clinics, Cadwell Realty Group, and Albany Vision Therapy are the strongest first-pass calls.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Prospect Table</h2>
+      <p>Owner/decision-maker names are only included when reasonably supported by public info. Otherwise they are intentionally marked as unverified rather than guessed.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Likely Owner / Decision Maker</th>
+              <th>Phone</th>
+              <th>Why They Might Buy</th>
+              <th>Likelihood</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>River View Family Eyecare</strong><br><a href="https://www.rivervieweye.com/" target="_blank">rivervieweye.com</a></td>
+              <td>Owner/manager not yet verified</td>
+              <td>541-967-3097</td>
+              <td>Patient data, appointments, website, and email reliance make this a strong fit for a practical security review.</td>
+              <td><span class="score high">8/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Albany Vision Therapy</strong><br><a href="https://www.albanyvisiontherapy.com/" target="_blank">albanyvisiontherapy.com</a></td>
+              <td>Owner/manager not yet verified</td>
+              <td>541-704-0458</td>
+              <td>Healthcare-adjacent practice with patient communications, scheduling, and likely sensitive records workflows.</td>
+              <td><span class="score high">7/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Valley Clinics (Albany location)</strong><br><a href="https://www.valleyclinics.com/" target="_blank">valleyclinics.com</a></td>
+              <td>Clinic admin / operations lead not yet verified</td>
+              <td>Main contact via site</td>
+              <td>Healthcare + PHI sensitivity + strong compliance/security positioning.</td>
+              <td><span class="score high">8/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Cadwell Realty Group</strong><br><a href="http://www.cadwellrealtygroup.com/" target="_blank">cadwellrealtygroup.com</a></td>
+              <td>Owner/manager not yet verified</td>
+              <td>541-791-7946</td>
+              <td>Real estate firms are often vulnerable to email compromise, document-sharing issues, and payment/wire fraud risk.</td>
+              <td><span class="score high">7/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Cedarwood Dental Professionals / James L. Delgado DDS</strong></td>
+              <td><strong>Dr. James Delgado</strong></td>
+              <td>Call main office from public listing/site</td>
+              <td>Patient data, scheduling, billing systems, and website/email reliance make this a strong dental prospect.</td>
+              <td><span class="score high">8/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Eyecare Associates - Albany</strong></td>
+              <td>Owner/manager not yet verified</td>
+              <td>Public office line needed from site/listing</td>
+              <td>Optometry/ophthalmology services usually mean protected records, scheduling tools, and patient communications.</td>
+              <td><span class="score high">7/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Gentle Dental Albany Pacific</strong></td>
+              <td>Office manager / practice manager not yet verified</td>
+              <td>Public office line needed from site/listing</td>
+              <td>Healthcare + billing + patient data, but likely somewhat more corporate and less local-buying-flexible.</td>
+              <td><span class="score mid">6/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Aspen Dental Albany</strong></td>
+              <td>Office manager not yet verified</td>
+              <td>Public office line needed from site/listing</td>
+              <td>Same healthcare sensitivity, but corporate structure may reduce likelihood of local service buying decisions.</td>
+              <td><span class="score low">5/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Albany Area Chamber law/accounting target</strong><br><a href="https://business.albanychamber.com/list" target="_blank">Albany Chamber Directory</a></td>
+              <td>Owner/partner not yet verified</td>
+              <td>Pull from chamber directory</td>
+              <td>Law/accounting firms are excellent security prospects due to documents, email, client data, and compliance pressures.</td>
+              <td><span class="score high">8/10</span></td>
+            </tr>
+            <tr>
+              <td><strong>Albany Area Chamber insurance target</strong><br><a href="https://business.albanychamber.com/list" target="_blank">Albany Chamber Directory</a></td>
+              <td>Agency owner / branch manager not yet verified</td>
+              <td>Pull from chamber directory</td>
+              <td>Insurance agencies handle high-value PII and are often heavily dependent on email and document workflows.</td>
+              <td><span class="score high">8/10</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Recommended Call Order</h2>
+      <div class="callout">
+        <strong>Top 5 to call first:</strong><br>
+        1. River View Family Eyecare<br>
+        2. Cedarwood Dental Professionals / James L. Delgado DDS<br>
+        3. Valley Clinics (Albany location)<br>
+        4. Cadwell Realty Group<br>
+        5. Albany Vision Therapy
+      </div>
+      <ul>
+        <li>Lead with local relevance and practical risk reduction, not fear.</li>
+        <li>Ask for the person who handles IT, operations, compliance, or office technology decisions.</li>
+        <li>Keep the first call short and focused on whether a follow-up conversation makes sense.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Call Script</h2>
+      <div class="script">Hi, this is Nathan with Cinderstrike. I’m reaching out to local businesses in Albany because we help identify practical cybersecurity risks like exposed websites, weak account security, and email-related vulnerabilities. Who would be the best person to speak with about IT or security for your office?</div>
+    </section>
+  </main>
+</body>
+</html>
