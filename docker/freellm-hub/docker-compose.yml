@@ -1,0 +1,22 @@
+services:
+  freellm-hub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freellm-hub
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: file:/app/db/freellm-hub.db
+      GEMINI_WEB_PROFILE_DIR: /app/.playwright-gemini-profile
+      GEMINI_WEB_BROWSER_PATH: /usr/bin/chromium
+      GEMINI_WEB_URL: https://gemini.google.com/app
+      NEXT_TELEMETRY_DISABLED: "1"
+      CHOKIDAR_USEPOLLING: "1"
+    volumes:
+      - ./db:/app/db
+      - ./.playwright-gemini-profile:/app/.playwright-gemini-profile
+      - ./.playwright-google-profile:/app/.playwright-google-profile
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped

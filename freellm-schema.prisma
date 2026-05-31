@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Provider {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String   // "openai" | "anthropic" | "deepseek" | "google" | "venice" | "kimi" | "zai"
+  apiKey      String?
+  oauthToken  String?
+  refreshToken String?
+  tokenExpiry DateTime?
+  isActive    Boolean  @default(true)
+  baseUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  models      Model[]
+}
+
+model Model {
+  id         String   @id @default(cuid())
+  providerId String
+  name       String
+  modelId    String   // e.g. "gpt-4o-mini", "claude-3-haiku"
+  isFree     Boolean  @default(true)
+  supportsTools Boolean @default(false)
+  maxTokens  Int      @default(4096)
+  isActive   Boolean  @default(true)
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  title       String    @default("New Chat")
+  modelId     String
+  systemPrompt String   @default("You are a helpful AI assistant.")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  conversationId String
+  role          String      // "user" | "assistant" | "system" | "tool"
+  content       String
+  modelId       String?
+  toolCalls     String?     // JSON string for tool call data
+  toolCallId    String?     // ID for tool call responses
+  isStreaming   Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Tool {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  type        String   // "web_search" | "code_execution" | "file_read" | "custom"
+  schema      String   // JSON string of tool parameters schema
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  prompt      String   // System prompt addition
+  tools       String   // JSON array of tool IDs associated with this skill
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
